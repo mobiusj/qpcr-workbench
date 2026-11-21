@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef4f0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <title>qPCR 数据整理台 · 下载与使用</title>
+  <script src="./install.js" defer></script>
+  <style>
+    :root{color-scheme:light;--ink:#173330;--muted:#496561;--brand:#195750;--line:#c5d8d0;--paper:#fffefa;background:#eef4f0;color:var(--ink);font:16px/1.6 system-ui,sans-serif}
+    *{box-sizing:border-box}
+    [hidden]{display:none!important}
+    body{margin:0}
+    main{width:min(660px,calc(100% - 28px));margin:clamp(20px,6vh,60px) auto;padding:clamp(16px,4vw,32px);border:1px solid var(--line);border-radius:19px;background:var(--paper);box-shadow:0 12px 36px #183d2e0b}
+    header{display:flex;align-items:center;gap:14px}
+    header img{width:58px;height:58px;border-radius:13px;flex:none}
+    h1{font-size:clamp(22px,5.7vw,31px);line-height:1.22;margin:0 0 4px}
+    h2{font-size:16px;line-height:1.4;margin:0 0 7px}
+    p{margin:0}
+    .quiet{color:var(--muted);font-size:14px}
+    .start{margin:22px 0 18px;padding:15px;border:1px solid #bdd5c9;border-radius:13px;background:#eef6f0}
+    .start p{margin-top:9px}
+    .choices{display:grid;gap:15px;grid-template-columns:1fr 1fr}
+    .choice{min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px}
+    details{margin-top:7px}
+    summary{min-height:44px;padding:9px 0;cursor:pointer;color:var(--brand);font-size:14px;font-weight:650}
+    details p{margin-bottom:8px}
+    .button{display:flex;align-items:center;justify-content:center;min-height:44px;padding:7px 12px;border:1px solid #98b5aa;border-radius:9px;background:var(--paper);color:var(--brand);font:inherit;font-weight:650;text-align:center;text-decoration:none;cursor:pointer}
+    .primary{background:var(--brand);color:white;border-color:var(--brand)}
+    .primary:hover{background:#10463c}
+    .button:not(.primary):hover{background:#edf5ef}
+    .downloads{display:grid;gap:6px;margin-top:9px}
+    .install-button{margin-top:9px}
+    :focus-visible{outline:2px solid #268378;outline-offset:3px}
+    footer{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:17px}
+    .signature{color:var(--muted);font:italic 16px Georgia,serif}
+    @media(max-width:540px){.choices{grid-template-columns:1fr}.choice{padding:12px 14px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="./icon-192.png" width="58" height="58" alt="">
+      <div><h1>qPCR 数据整理台</h1><p class="quiet">384／96 孔板 · Excel 导出</p></div>
+    </header>
+    <section class="start" aria-label="直接使用网页版">
+      <a class="button primary" href="./qPCR-384.html">直接打开网页版</a>
+      <p class="quiet">手机、平板和电脑都可在浏览器使用。实验文件在本机处理。</p>
+      <p id="offline-status" class="quiet" role="status" hidden></p>
+    </section>
+    <div class="choices">
+      <section class="choice" aria-labelledby="install-title">
+        <h2 id="install-title">添加到主屏幕</h2>
+        <p class="quiet">首次联网打开并缓存后，网页应用可离线使用。</p>
+        <button id="install-app" class="button install-button" type="button" hidden>安装网页应用</button>
+        <details>
+          <summary>iPhone 和 iPad</summary>
+          <p class="quiet">在 Safari 打开本页，选择「分享」→「添加到主屏幕」。如看到「作为网页 App 打开」，请开启。</p>
+        </details>
+        <details>
+          <summary>Android</summary>
+          <p class="quiet">在 Chrome 打开本页，从浏览器菜单选择「安装应用」或「添加到主屏幕」。</p>
+        </details>
+      </section>
+      <section class="choice" aria-labelledby="download-title">
+        <h2 id="download-title">下载桌面版</h2>
+        <p class="quiet">解压后即可离线使用。</p>
+        <div class="downloads">
+          <a class="button" href="./qPCR-384-macOS.zip" download="qPCR-384-macOS-1.4.0.zip">macOS 下载</a>
+          <a class="button" href="./qPCR-384-Windows.zip" download="qPCR-384-Windows-1.4.0.zip">Windows 下载</a>
+        </div>
+        <p class="quiet" style="margin-top:8px">当前 Mac 包使用本地签名。系统若提示无法验证，可直接使用网页版。</p>
+      </section>
+    </div>
+    <footer><small class="quiet">v1.4.0</small><span class="signature">Möbius</span></footer>
+  </main>
+</body>
+</html>
