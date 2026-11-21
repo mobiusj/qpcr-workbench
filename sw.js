@@ -1,6 +1,6 @@
 const scope = new URL(self.registration.scope);
 const prefix = 'qpcr-workbench:' + scope.pathname + ':';
-const cacheName = prefix + '1.8.0';
+const cacheName = prefix + '1.8.1';
 const files = [
   './', './qPCR-384.html', './install.js', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png',

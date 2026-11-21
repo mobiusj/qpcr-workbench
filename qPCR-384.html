@@ -2403,8 +2403,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       item.classList.toggle('error',error);
     }
     function controls() {
-      const pending=[...selectionByPlate].filter(([id,state])=>id!==selected && (state.sample || state.axis)).map(([id])=>id);
-      get('zone-preview').disabled=!sampleEditor.hidden || !axisEditor.hidden || (!demo && pending.length>0) ||
+      const pending=[...selectionByPlate].filter(([id,state])=>id!==selected && (state.picked.length || state.sample || state.axis)).map(([id])=>id);
+      get('zone-preview').disabled=picked.length>0 || !sampleEditor.hidden || !axisEditor.hidden || (!demo && pending.length>0) ||
         ![...layouts().values()].some(layout=>layout.areas.length || layout.saved.length);
       get('zone-write').disabled=!preview || demo || !!preview.problems.length;
       get('zone-overwrite').hidden=demo || !preview || !(preview.replaced.length || preview.cleared.length);
@@ -2414,11 +2414,11 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       get('zone-selection-modes').disabled=!!preview || !selected;
       get('zone-append').disabled=!!preview || !selected;
       get('zone-region-axis').disabled=!selected;
-      const instruction=mode()==='continuous'?'跨行连续从行尾接下一行。':'拖选矩形，或依次点两个角。';
+      const instruction=mode()==='continuous'?'从行尾接到下一行。':'拖选矩形，或依次点两个角。';
       get('zone-board-help').textContent=preview
         ? '点孔查看副孔编号，或点「继续编辑」修改孔位。'
-        : `${instruction} Shift 扩选，Ctrl／⌘ 追加。点已有区域编辑样本，点${byColumn()?'列号':'行号'}设置基因。`+
-          (!demo && pending.length?` ${pending.join('、')} 还有未保存的编辑。`:'');
+        : `${instruction} Ctrl／⌘ 拖选可追加另一块，勾选「追加选区」也可逐块框选。点${byColumn()?'列号':'行号'}设置基因。`+
+          (!demo && pending.length?` 请先保存或清空 ${pending.join('、')} 的选区或编辑。`:'');
     }
     function resetDraft() {picked=[];anchor='';waiting=false;gesture=null;}
     function closeEditors() {
@@ -2443,7 +2443,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       selector.value=selected;
       get('zone-real').hidden=!demo;
       get('zone-source').textContent=demo?'示例有 2 个样本、5 个基因，每个样本分别有 3 和 4 个副孔。':
-        plates.length ? '已导入 '+plates.length+' 块板。':'尚未导入仪器 TXT，可点击示例体验。';
+        plates.length>1 ? `已导入 ${plates.length} 块板。切换时保留各板选区，自动识别会检查全部已设定板。`:
+        plates.length ? '已导入 1 块板。':'尚未导入仪器 TXT，可点击示例体验。';
       paintGrid();
       paintSampleList();
     }
@@ -2647,7 +2648,10 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         cell.classList.toggle('draft',chosen);
         if (cell.getAttribute('aria-pressed')!==String(chosen)) cell.setAttribute('aria-pressed',String(chosen));
       }
-      if (draft.size) info.textContent=`${selected} · 已选 ${draft.size} 孔 · ${formatWells(picked)}`;
+      if (draft.size) {
+        const next=waiting && !gesture?.moved ? ` · 已点起点 ${anchor}，请点终点` : '';
+        info.textContent=`${selected} · 已选 ${draft.size} 孔 · ${formatWells(picked)}${next}`;
+      }
       else if (preview) {
         const rows=preview.rows.filter(row=>row.plate===selected);
         const groups=new Set(rows.map(row=>JSON.stringify([row.group,row.sample,row.gene])));
@@ -2715,24 +2719,26 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     api.trackBoardFocus(grid,'[data-zone-well]',hit);
     function choosePoint(well,event) {
       if (!axisEditor.hidden) {message('请先保存或取消正在编辑的基因。',true);return;}
+      const append=addMode(event);
       if (event.shiftKey && anchor) {
-        setPicked(unique([...(addMode(event)?picked:[]),...engine().selectionSpan(anchor,well,mode())]));
         waiting=false;
-        if (sampleEditor.hidden && picked.length) editSample();
+        setPicked(unique([...(append?picked:[]),...engine().selectionSpan(anchor,well,mode())]));
+        if (!append && sampleEditor.hidden && picked.length) editSample();
         return;
       }
-      if (addMode(event)) {
-        const next=keyAppend(event) && picked.includes(well) ? picked.filter(item=>item!==well) : unique([...picked,well]);
+      if (keyAppend(event)) {
+        const next=picked.includes(well) ? picked.filter(item=>item!==well) : [...picked,well];
         anchor=well;waiting=false;setPicked(next);return;
       }
       if (waiting && anchor) {
-        setPicked(engine().selectionSpan(anchor,well,mode()));waiting=false;
-        if (sampleEditor.hidden) editSample();
+        waiting=false;
+        setPicked(unique([...(append?picked:[]),...engine().selectionSpan(anchor,well,mode())]));
+        if (!append && sampleEditor.hidden) editSample();
         return;
       }
       const area=areaAt(well);
-      if (area && sampleEditor.hidden) {editSample(area);return;}
-      anchor=well;waiting=true;setPicked([well]);
+      if (area && !append && sampleEditor.hidden) {editSample(area);return;}
+      anchor=well;waiting=true;setPicked(append?unique([...picked,well]):[well]);
     }
     grid.addEventListener('pointerdown',event=>{
       const button=hit(event.target);
@@ -2989,8 +2995,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       if (!preview) message('');
       paintPlates();resumeDraft();
     });
-    get('zone-selection-modes').addEventListener('change',()=>{api.setSelectionMode(mode());paintDraft();});
-    get('zone-append').addEventListener('change',event=>api.setAppendMode(event.target.checked));
+    get('zone-selection-modes').addEventListener('change',()=>{waiting=false;api.setSelectionMode(mode());paintDraft();});
+    get('zone-append').addEventListener('change',event=>{waiting=false;api.setAppendMode(event.target.checked);paintDraft();});
     get('zone-clear-selection').addEventListener('click',()=>{anchor='';waiting=false;setPicked([]);});
     get('zone-region-axis').addEventListener('change',event=>{
       const layout=ensureLayout();layout.direction=event.target.value;layout.dirty=true;
