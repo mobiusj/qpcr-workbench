@@ -29,7 +29,7 @@
 .range-entry input{width:min(225px,54vw)}.mapping-actions{flex-wrap:wrap}.matrix-wrap .well-axis{width:100%;padding:1px 0;background:transparent;border-color:transparent;font-size:10px;line-height:17px;color:#365957}.matrix-wrap .well-axis:not(:disabled):hover{background:#d6eae0;border-color:#acc4bc}.template-panel{margin:0 0 15px;padding:10px 14px;border:1px solid #cbdcd6;border-radius:8px;display:grid;gap:8px}.template-panel legend{font-size:13px;font-weight:700}.template-panel .file-button{justify-self:start}.template-panel #template-header-row,.template-panel #template-body-row{width:72px}.image-template{display:grid;gap:6px;justify-items:start}.image-template img{max-width:100%;max-height:180px;width:auto;height:auto;border:1px solid #cbdcd6;cursor:crosshair}.preview-panel{margin:12px 0}.preview-scroll{overflow:auto;min-height:80px;max-height:320px;border:1px solid #cbdcd6;border-radius:8px;margin-top:6px;background:#fff}.preview-scroll table{min-width:0;table-layout:fixed;width:max-content;border-collapse:collapse;border-spacing:0;text-align:left}.preview-scroll td{padding:2px 5px;border:1px solid #d7dfdb;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.preview-scroll td.preview-wrap{white-space:normal;overflow-wrap:anywhere}.preview-scroll p{padding:12px}#style-dialog{width:min(1120px,94vw);max-height:calc(100dvh - 24px);overflow:auto}
 .zone-edit-tools{min-height:32px;margin:4px 0 8px}.zone-edit-tools p{margin:0;flex:1 1 260px}.zone-edit-tools button,.zone-editor button,.zone-sample-list button{padding:4px 8px}
 .zone-editor{display:flex;flex-wrap:wrap;align-items:center;gap:7px 12px;padding:8px 10px;margin:0 0 8px;background:#edf5f0;border:1px solid #c5ddd1;border-radius:8px}.zone-editor strong{font-size:13px}.zone-editor input{width:clamp(95px,18vw,185px);padding:4px 7px}.zone-editor select{padding:4px 6px}
-.zone-grid-frame{position:relative}#zone-overlays{position:absolute;inset:0;pointer-events:none}.zone-overlay{position:absolute;display:grid;place-items:center;border-radius:5px;overflow:hidden}
+.zone-grid-frame{position:relative}.region-overlays{position:absolute;inset:0;pointer-events:none}.zone-overlay{position:absolute;display:grid;place-items:center;border-radius:5px;overflow:hidden}
 .zone-overlay span{min-width:0;max-width:100%;padding:0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:700;line-height:1.25}
 .zone-overlay.sample{border:1.5px solid #508878;background:#c9e6dded;color:#143f35}.zone-overlay.replicates{border:1px solid #34554e;color:#193832}
 .zone-overlay.replicates.conflict{border:2px solid #a94729}.zone-overlay.replicates span{background:var(--zone-gene);border-radius:3px}
@@ -64,6 +64,8 @@
   align-items:flex-end;
   gap:6px;
 }
+.mast-brand {display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mast-version {color:var(--muted);font-size:11px;line-height:1.3;font-variant-numeric:tabular-nums}
 .mast-signature {
   color:var(--muted);
   font:italic 16px/1.35 Georgia,"Times New Roman",serif;
@@ -120,6 +122,26 @@ button:disabled {cursor:default}
 #reset {margin-left:auto}
 .map-heading {justify-content:space-between;flex-wrap:wrap}
 #selection-help {margin:0 0 6px}
+#board-region-message {margin:7px 0}
+#board-region-message:empty {display:none}
+#board-region-message.error,#repeat-genes-status.error {color:#862d24}
+#board-options {column-gap:12px}
+#board-overwrite-slot #zone-overwrite {margin:0 0 8px}
+#matrix .gene-axis:not(.has-gene,:disabled) {background:#eaf2ee}
+#matrix .has-gene {background:var(--zone-gene)}
+#matrix .zone-axis-gene {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+#matrix.has-row-genes th:first-child {width:64px}
+#matrix .well.board-planned {background:var(--zone-gene);color:#18292d}
+#matrix .well.conflict {box-shadow:inset 0 0 0 1.5px #a94729}
+#board-overlays .zone-overlay.sample {border-color:#508878a6;background:transparent}
+#board-overlays .zone-overlay.replicates {border-color:#34554ec2}
+#board-overlays .zone-overlay.replicates.conflict {border-color:#a94729}
+#repeat-genes-dialog {width:min(485px,94vw);max-height:calc(100dvh - 24px);overflow:auto}
+.repeat-genes-fields label {flex:1 1 112px;display:grid;gap:4px}
+#repeat-genes-status {margin:12px 0 6px}
+#repeat-genes-preview {display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:4px 9px;margin:0;padding:0;list-style:none;font-size:12px}
+#repeat-genes-preview li {overflow-wrap:anywhere;background:#edf5f0;border-radius:4px;padding:3px 6px}
+.repeat-genes-footer {margin-top:14px;justify-content:flex-end}
 .selection-bar {
   display:flex;
   align-items:center;
@@ -300,6 +322,64 @@ button:disabled {cursor:default}
   .selection-bar .actions {gap:5px}
   #reset {margin-left:0}
 }
+
+/* Main workbench */
+main {padding-top:30px}
+.mast {gap:20px;padding-bottom:18px;margin-bottom:14px;border-bottom:1px solid #d7e4de}
+.mast h1 {font-weight:760}
+.mast p {font-size:14px}
+.mast-meta {align-items:flex-end;gap:10px}
+.mast-signature {color:var(--brand);font-size:18px}
+.private {border:1px solid #d1e3dc;background:#e4efe9;padding:5px 11px}
+.steps {gap:9px;margin-bottom:16px}
+.steps a {background:#fafcfb;border-radius:11px}
+.steps a[aria-current="step"] {box-shadow:inset 0 0 0 1px #afcfc4}
+.card {border-radius:14px;box-shadow:0 2px 3px #173f3010,0 8px 20px #173f3006}
+.card .heading {gap:10px 16px}
+.card h2 {letter-spacing:-.015em}
+.card .heading p {line-height:1.5}
+#import-section .import-help {max-width:70ch}
+
+#board-layout-actions {gap:6px}
+#board-layout-actions button {padding:5px 10px}
+#plate-summary {flex:1 1 245px;min-width:0;overflow-wrap:anywhere}
+#board-options {
+  width:100%;gap:7px 12px;padding:7px 9px;
+  background:#f5f9f7;border:1px solid #e0ebe5;border-radius:9px;
+}
+#plate-matrix-wrap,.zone-grid-wrap {border-color:#d4e3dc;background:#f7faf8;border-radius:10px}
+#matrix .well {border-radius:4px;font-variant-numeric:tabular-nums}
+#matrix .well:not(:disabled,.conflict,[aria-pressed=true]):hover {box-shadow:inset 0 0 0 1px #608a7c}
+#matrix .well:focus-visible {outline-color:#237765;outline-offset:-2px}
+#matrix .well[aria-pressed=true]:focus-visible {outline-color:#1e463e;box-shadow:inset 0 0 0 3px #fff}
+#board-overlays .zone-overlay.sample {border-color:#4d8376bf}
+#board-selection {min-width:0;padding:2px 8px;background:#dcece4;border-radius:5px;font-variant-numeric:tabular-nums}
+.selection-bar {border:1px solid #dce8e1;background:#f0f6f2}
+.legend {gap:5px 12px}
+.legend>span {display:inline-flex;align-items:center;gap:4px}
+.legend i {margin-right:0;flex:none}
+.zone-editor {border-color:#c7ded3;border-radius:9px;background:#eff6f2}
+
+button.primary:disabled {background:#dce9e2;color:#516d64;border-color:#c9dbd2;opacity:1}
+dialog {box-shadow:0 16px 50px #112f2b29}
+dialog::backdrop {background:#102c2b70}
+.qpcr-context {border-radius:10px;box-shadow:0 8px 24px #163a322e}
+.report-choice,.quality-panel {border-radius:10px}
+
+@media(max-width:780px) {
+  main {padding:19px 12px 32px}
+  .mast {gap:9px;padding:2px 2px 13px;margin-bottom:12px}
+  .mast-meta {align-items:center;gap:12px}
+  .mast-signature {font-size:16px}
+}
+@media(max-width:680px) {
+  .steps {gap:6px;margin-bottom:13px}
+  .steps a {padding:7px 8px}
+  #board-layout-actions {margin-bottom:2px}
+  #board-options {gap:6px 10px}
+  .card .heading {margin-bottom:11px}
+}
+
 </style>
 </head>
 <body>
@@ -316,7 +396,10 @@ button:disabled {cursor:default}
     </div>
     <div class="mast-meta">
       <span class="private">文件仅在本机处理</span>
-      <span class="mast-signature">Möbius</span>
+      <div class="mast-brand">
+        <span class="mast-signature">Möbius</span>
+        <small class="mast-version">v1.9.1</small>
+      </div>
     </div>
   </header>
   <nav class="steps" aria-label="整理流程">
@@ -333,27 +416,40 @@ button:disabled {cursor:default}
   </section>
   <section class="card" id="map-section" aria-labelledby="title-map">
     <div class="heading map-heading">
-      <div><h2 id="title-map">分配样本与基因</h2><p class="pointer-help">拖选孔位后点「编辑选中孔」。双击已分配的孔可编辑整组副孔。</p><p class="touch-help">轻点孔位或行列号，选孔后点「编辑选中孔」。</p></div>
-      <div class="actions"><button id="open-zones" type="button" class="primary" title="框选或修改样本区域，按行列设置基因">编辑样本区域</button><button id="open-planner" type="button" title="按名单和上板顺序分配多块板">按名单批量分配</button></div>
+      <div><h2 id="title-map">分配样本与基因</h2><p class="pointer-help">拖选孔位后直接设置样本。点行号或列号设置基因。</p><p class="touch-help">勾选「两点选区」后点起点和终点，可直接设置样本。点行号或列号设置基因。</p></div>
+      <div class="actions"><button id="open-zones" type="button">打开区域编辑器</button><button id="open-planner" type="button" title="按名单和上板顺序分配多块板">按名单批量分配</button></div>
     </div>
     <div id="plate-tabs" class="plate-tabs" role="group" aria-label="切换 384 孔板"></div>
     <div class="board-toolbar">
       <p id="plate-summary" class="quiet">尚未导入仪器文件。</p>
+      <div class="actions" id="board-layout-actions" hidden>
+        <button id="board-share" type="button" aria-haspopup="dialog">共享布局</button>
+        <button id="board-preview" type="button" class="primary">自动识别</button>
+        <button id="board-continue" type="button" hidden>继续编辑</button>
+        <button id="board-write" type="button" class="primary" hidden>保存映射</button>
+      </div>
+    </div>
+    <div class="board-toolbar">
       <div class="actions" id="board-options" hidden>
+        <label>基因位置 <select id="board-region-axis"><option value="genes-by-row">按行</option><option value="genes-by-column">按列</option></select></label>
+        <button id="board-repeat-genes" type="button" aria-haspopup="dialog">重复填充基因</button>
         <label>孔内显示 <select id="well-display"><option value="cp">Cp</option><option value="gene">基因名</option></select></label>
-        <fieldset class="selection-modes"><legend class="sr-only">选孔方式</legend><label><input type="radio" name="selection-mode" value="rectangle" checked><span>矩形框选</span></label><label><input type="radio" name="selection-mode" value="continuous"><span>跨行连续</span></label></fieldset>
+        <fieldset id="board-selection-modes" class="selection-modes"><legend class="sr-only">选孔方式</legend><label><input type="radio" name="selection-mode" value="rectangle" checked><span>矩形框选</span></label><label><input type="radio" name="selection-mode" value="continuous"><span>跨行连续</span></label></fieldset>
         <label class="check" title="点击或拖选新孔位时保留现有选区"><input type="checkbox" id="append-selection"> 追加选区</label>
-        <label class="check touch-help"><input type="checkbox" id="touch-range"> 两点选区</label>
-        <button id="edit-late" type="button">本板 Late Cp 设置</button>
+        <label class="check"><input type="checkbox" id="touch-range"> 两点选区</label>
+        <button id="edit-late" type="button">Late Cp 设置</button>
       </div>
     </div>
     <p id="selection-help" class="quiet" hidden></p>
-    <div class="matrix-wrap" id="plate-matrix-wrap" tabindex="0" aria-label="A 至 P 行、1 至 24 列的孔板"><table id="matrix" aria-label="384 孔板"></table></div>
+    <p id="board-region-message" class="quiet" role="status"></p>
+    <div id="board-region-editors"></div>
+    <div id="board-overwrite-slot"></div>
+    <div class="matrix-wrap" id="plate-matrix-wrap" tabindex="0" aria-label="A 至 P 行、1 至 24 列的孔板"><div class="zone-grid-frame"><table id="matrix" aria-label="384 孔板"></table><div id="board-overlays" class="region-overlays" aria-hidden="true"></div></div></div>
     <div class="legend"><span><i class="detected"></i> 有效 Cp</span><span><i class="inactive"></i> 空孔 / 未检出 / 排除</span><span><i id="late-swatch"></i> <span id="late-legend-label">Late Cp（右上角）</span></span></div>
     <div class="legend gene-legend" id="gene-legend" aria-label="本板基因颜色" hidden></div>
     <div class="mapping">
       <div class="selection-bar" id="selection-bar" hidden>
-        <div class="actions"><strong id="board-selection" aria-live="polite"></strong><button id="open-assign" type="button" class="primary" disabled>编辑选中孔</button><button id="well-actions" type="button" aria-haspopup="menu" disabled>更多 ▾</button><button id="clear-wells" type="button" class="subtle" disabled>清空选区</button></div>
+        <div class="actions"><strong id="board-selection" aria-live="polite"></strong><button id="well-actions" type="button" aria-haspopup="menu" disabled>选孔操作 ▾</button><button id="open-assign" type="button" class="subtle" disabled>手动分配</button><button id="clear-wells" type="button" class="subtle" disabled>取消选孔</button></div>
         <details class="selection-extra"><summary>输入孔位</summary><div class="actions selection-inputs">
           <label class="range-entry"><span class="sr-only">输入孔位</span><input id="quick-range" placeholder="如 A1-24, H1-24, P1-2" autocomplete="off"></label>
           <button id="apply-range" type="button" disabled>按孔位选取</button>
@@ -419,6 +515,7 @@ button:disabled {cursor:default}
   <section class="zone-board" aria-label="孔板分区">
     <div class="actions zone-toolbar"><h3 id="zone-board-title">编辑孔板</h3><label>查看板 <select id="zone-plate"></select></label>
       <label id="zone-axis-field">基因位置 <select id="zone-region-axis"><option value="genes-by-row">按行 · 副孔横排</option><option value="genes-by-column">按列 · 副孔竖排</option></select></label>
+      <button id="zone-repeat-genes" type="button" aria-haspopup="dialog">重复填充基因</button>
       <button id="zone-select-mode" type="button" hidden>继续编辑</button>
     </div>
     <div class="actions zone-edit-tools">
@@ -427,20 +524,36 @@ button:disabled {cursor:default}
       <button id="zone-clear-selection" class="subtle" type="button" hidden>清空选区</button><button id="zone-name-area" type="button" hidden>设为样本</button>
       <p id="zone-board-help" class="quiet"></p>
     </div>
+    <div id="zone-editors">
     <form id="zone-sample-editor" class="zone-editor" hidden>
       <label>孔位 <input id="zone-range-input" required autocomplete="off" placeholder="A1:E3 或 A23-B2" aria-describedby="zone-sample-range"></label><strong id="zone-sample-range"></strong><label>样本名 <input id="zone-sample-name" required maxlength="80" autocomplete="off"></label><label>分组 <input id="zone-sample-group" required maxlength="80" autocomplete="off"></label>
       <button id="zone-save-sample" type="submit" class="primary">保存样本</button><button id="zone-remove-sample" type="button" hidden>移除区域</button><button id="zone-cancel-sample" type="button">取消</button>
     </form>
     <form id="zone-axis-editor" class="zone-editor" hidden>
       <strong id="zone-axis-position"></strong><label>基因名称 <input id="zone-axis-name" required maxlength="80" autocomplete="off"></label><label>角色 <select id="zone-axis-role"><option value="target">目的基因</option><option value="reference">内参基因</option></select></label>
+      <label>常用内参 <select id="zone-reference-preset" aria-label="常用内参"></select></label>
       <button type="submit" class="primary">保存基因</button><button id="zone-axis-next" type="submit" hidden>保存并编辑下一行</button><button id="zone-remove-axis" type="button" hidden>清除基因</button><button id="zone-cancel-axis" type="button">取消</button>
     </form>
-    <div class="matrix-wrap zone-grid-wrap"><div class="zone-grid-frame"><table id="zone-grid" aria-label="可编辑的 384 孔分区图"></table><div id="zone-overlays" aria-hidden="true"></div></div></div>
+    </div>
+    <div class="matrix-wrap zone-grid-wrap"><div class="zone-grid-frame"><table id="zone-grid" aria-label="可编辑的 384 孔分区图"></table><div id="zone-overlays" class="region-overlays" aria-hidden="true"></div></div></div>
     <p id="zone-well-info" class="quiet" aria-live="polite"></p>
     <div id="zone-samples-on-board" class="zone-sample-list actions" aria-label="本板样本区域"></div>
-    <details id="zone-overwrite" hidden><summary>覆盖设置</summary><label class="check"><input type="checkbox" id="zone-replace"> 允许覆盖从其他方式分配或清除的孔</label></details>
+    <div id="zone-overwrite-slot"><details id="zone-overwrite" hidden><summary>覆盖设置</summary><label class="check"><input type="checkbox" id="zone-replace"> 允许覆盖从其他方式分配或清除的孔</label></details></div>
   </section>
   <div class="actions zone-footer"><button id="zone-preview" type="button" class="primary">自动识别</button><span id="zone-message" class="quiet" role="status"></span><button id="zone-share" type="button" aria-haspopup="dialog">共享布局</button><button id="zone-close" type="button">关闭</button><button id="zone-write" class="primary" type="button" disabled>保存映射</button></div>
+</dialog>
+<dialog id="repeat-genes-dialog" aria-labelledby="repeat-genes-title">
+  <form id="repeat-genes-form">
+    <div class="heading"><div><h2 id="repeat-genes-title">重复填充基因</h2><p id="repeat-genes-help"></p></div></div>
+    <div class="actions repeat-genes-fields">
+      <label>来源起点 <select id="repeat-genes-first"></select></label>
+      <label>来源终点 <select id="repeat-genes-last"></select></label>
+      <label>填充到 <select id="repeat-genes-through"></select></label>
+    </div>
+    <p id="repeat-genes-status" class="quiet" role="status"></p>
+    <ul id="repeat-genes-preview" aria-label="填充预览"></ul>
+    <div class="actions repeat-genes-footer"><button id="repeat-genes-cancel" type="button">取消</button><button id="repeat-genes-apply" type="submit" class="primary">应用填充</button></div>
+  </form>
 </dialog>
 <dialog id="zone-share-dialog" aria-labelledby="zone-share-title">
   <div class="heading"><div><h2 id="zone-share-title">共享孔板布局</h2><p>仅共享样本、分组、孔位和行列基因设置。</p></div><button id="zone-share-close" class="subtle" type="button">关闭</button></div>
@@ -2370,22 +2483,26 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   const context=globalThis.qpcrContext;
   function init(api) {
     const {get,node,createOption,geneColor,engine,planner}=api, dialog=get('zone-dialog'), grid=get('zone-grid');
+    const boardGrid=get('matrix'), boardOverlays=get('board-overlays');
     const examples=[{id:'P1',name:'示例板'}];
     const info=get('zone-well-info');
+    let inline=true, layoutSource=null, previewSource=null;
     let selected='', demo=false, preview=null, picked=[], anchor='', waiting=false, gesture=null;
     const sampleLayouts=new Map(), exampleLayouts=new Map(), selectionByPlate=new Map();
     const sampleEditor=get('zone-sample-editor'), axisEditor=get('zone-axis-editor'), overlays=get('zone-overlays');
+    const repeatDialog=get('repeat-genes-dialog');
+    const repeatFields=['first','last','through'].map(part=>get('repeat-genes-'+part));
     const shareDialog=get('zone-share-dialog'), shareScope=get('zone-share-scope'), shareText=get('zone-share-text');
     const shareInput=get('zone-share-input'), shareTargets=get('zone-share-targets');
     let shareLoad=0, importedBoards=[];
-    let editingArea=null, editingAxis=null, lastGroup='Group A';
+    let editingArea=null, editingAxis=null, axisDirection=null, lastGroup='Group A';
     const layouts=()=>demo ? exampleLayouts : sampleLayouts;
     const currentLayout=()=>layouts().get(selected);
     const regionDirection=()=>currentLayout()?.direction || 'genes-by-row';
     const byColumn=()=>regionDirection()==='genes-by-column';
     const geneAxis=()=>byColumn() ? 'col' : 'row';
     const axisIndex=(type,value)=>type==='col' ? Number(value) : engine().letters.indexOf(value);
-    const axisLabel=(index)=>byColumn() ? index+' 列' : engine().letters[index]+' 行';
+    const axisLabel=(index,direction=regionDirection())=>direction==='genes-by-column' ? index+' 列' : engine().letters[index]+' 行';
     const regionGenes=()=>currentLayout()?.genes[regionDirection()];
     const available=()=>demo ? examples : api.plates();
     const limits=area=>({...area,...planner().rectangleBounds(area.first,area.last)});
@@ -2398,22 +2515,38 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const matchesWell=(area,well)=>planner().regionWells(area).includes(well);
     const areaAt=well=>currentLayout()?.areas.find(area=>matchesWell(area,well));
     function message(text,error=false) {
-      const item=get('zone-message');
+      const item=get(inline?'board-region-message':'zone-message');
       item.textContent=text;
       item.classList.toggle('error',error);
     }
+    const editing=()=>!sampleEditor.hidden || !axisEditor.hidden;
+    const pendingEdits=()=>[...selectionByPlate].filter(([id,state])=>id!==selected &&
+      (state.sample || state.axis || (!inline && state.picked.length))).map(([id])=>id);
     function controls() {
-      const pending=[...selectionByPlate].filter(([id,state])=>id!==selected && (state.picked.length || state.sample || state.axis)).map(([id])=>id);
-      get('zone-preview').disabled=picked.length>0 || !sampleEditor.hidden || !axisEditor.hidden || (!demo && pending.length>0) ||
-        ![...layouts().values()].some(layout=>layout.areas.length || layout.saved.length);
+      const pending=pendingEdits();
+      const hasAreas=[...layouts().values()].some(layout=>layout.areas.length || layout.saved.length);
       get('zone-write').disabled=!preview || demo || !!preview.problems.length;
       get('zone-overwrite').hidden=demo || !preview || !(preview.replaced.length || preview.cleared.length);
+      get(inline?'board-repeat-genes':'zone-repeat-genes').disabled=!selected || !axisEditor.hidden || !!preview || !regionGenes()?.size;
+      if (inline) {
+        get('board-layout-actions').hidden=!selected;
+        get('board-preview').hidden=!!preview;
+        get('board-preview').disabled=editing() || !hasAreas;
+        get('board-continue').hidden=get('board-write').hidden=!preview;
+        get('board-write').disabled=!preview || !!preview.problems.length;
+        get('board-region-axis').disabled=!axisEditor.hidden || !!preview;
+        get('board-selection-modes').disabled=get('append-selection').disabled=get('touch-range').disabled=!!preview || !axisEditor.hidden;
+        get('selection-bar').hidden=!selected || !!preview;
+        get('open-assign').disabled=!selected || !axisEditor.hidden || get('clear-wells').disabled;
+        return;
+      }
+      get('zone-preview').disabled=picked.length>0 || editing() || (!demo && pending.length>0) || !hasAreas;
       get('zone-select-mode').hidden=!preview;
       get('zone-name-area').hidden=!!preview || !picked.length || !sampleEditor.hidden;
       get('zone-clear-selection').hidden=!!preview || !picked.length;
       get('zone-selection-modes').disabled=!!preview || !selected;
       get('zone-append').disabled=!!preview || !selected;
-      get('zone-region-axis').disabled=!selected;
+      get('zone-region-axis').disabled=!selected || !axisEditor.hidden;
       const instruction=mode()==='continuous'?'从行尾接到下一行。':'拖选矩形，或依次点两个角。';
       get('zone-board-help').textContent=preview
         ? '点孔查看副孔编号，或点「继续编辑」修改孔位。'
@@ -2423,10 +2556,14 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     function resetDraft() {picked=[];anchor='';waiting=false;gesture=null;}
     function closeEditors() {
       sampleEditor.hidden=axisEditor.hidden=true;
-      editingArea=editingAxis=null;
+      editingArea=editingAxis=axisDirection=null;
+    }
+    function placeEditors() {
+      get(inline?'board-region-editors':'zone-editors').append(sampleEditor,axisEditor);
+      get(inline?'board-overwrite-slot':'zone-overwrite-slot').append(get('zone-overwrite'));
     }
     function invalidate(note='') {
-      preview=null;
+      preview=previewSource=null;
       message(note);
       renderMarks();
       paintOverlays();
@@ -2458,11 +2595,14 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     function mappingSource(rows, plate) {
       return engine().mapText(rows.filter(row=>row.plate===plate).sort((a,b)=>a.well.localeCompare(b.well)));
     }
-    function restoreLayouts() {
+    const sourceKey=()=>JSON.stringify(api.plates().map(plate=>plate.id))+'\n'+get('mapping').value;
+    function restoreLayouts(rows=api.mapping(true)) {
+      const source=sourceKey();
+      if (source===layoutSource) return;
+      layoutSource=source;
       const known=new Set(available().map(plate=>plate.id));
       for (const id of sampleLayouts.keys()) if (!known.has(id)) sampleLayouts.delete(id);
       for (const id of selectionByPlate.keys()) if (!known.has(id)) selectionByPlate.delete(id);
-      const rows=api.mapping(true);
       if (!rows) return;
       for (const id of known) {
         const layout=sampleLayouts.get(id), source=mappingSource(rows,id);
@@ -2478,6 +2618,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       }
     }
     function paintSampleList() {
+      if (inline) return;
       const areas=currentLayout()?.areas || [];
       get('zone-samples-on-board').replaceChildren(...areas.map(area=>{
         const button=node('button',`${area.sample} · ${pretty(area)}`);
@@ -2510,12 +2651,10 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     }
     function editSample(area=null,allowEmpty=false) {
       if (!selected || (!area && !picked.length && !allowEmpty)) return;
-      if (!axisEditor.hidden) {message('请先保存或取消正在编辑的基因。',true);return;}
       if (area) {
-        picked=planner().regionWells(area);anchor=picked[0];waiting=false;
+        setPicked(planner().regionWells(area));anchor=picked[0];waiting=false;
         if (preview) invalidate();
       }
-      closeEditors();
       editingArea=area;
       const group=area?.group || (demo?'示例组':lastGroup);
       const used=new Set([...layouts().values()].flatMap(layout=>layout.areas).concat(demo?[]:api.mapping(true) || [])
@@ -2527,26 +2666,105 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       get('zone-sample-group').value=group;
       get('zone-remove-sample').hidden=!area;
       sampleEditor.hidden=false;
+      message('');
       controls();
       renderMarks();
       focusField(get('zone-sample-name'));
     }
-    function editAxis(index) {
-      resetDraft();closeEditors();
+    function editAxis(index,direction=regionDirection()) {
+      if (!axisEditor.hidden) {
+        focusField(get('zone-axis-name'));
+        message('请先保存或取消当前基因设置。',true);
+        return;
+      }
       if (preview) invalidate();
-      editingAxis=index;
-      const definition=regionGenes()?.get(index);
-      get('zone-axis-position').textContent=axisLabel(index);
+      editingAxis=index;axisDirection=direction;
+      const definition=currentLayout()?.genes[direction].get(index);
+      const columns=direction==='genes-by-column';
+      const position=axisLabel(index,direction);
+      get('zone-axis-position').textContent=position+(direction!==regionDirection() ? ' · 保存后按'+(columns?'列':'行')+'识别' : '');
       get('zone-axis-name').value=definition?.name || '';
       get('zone-axis-role').value=definition?.role || 'target';
+      get('zone-reference-preset').value='';
       const next=get('zone-axis-next');
-      next.hidden=index===(byColumn()?engine().columns:engine().letters.length-1);
-      next.textContent='保存并编辑下一'+(byColumn()?'列':'行');
+      next.hidden=index===(columns?engine().columns:engine().letters.length-1);
+      next.textContent='保存并编辑下一'+(columns?'列':'行');
       get('zone-remove-axis').hidden=!definition;
       axisEditor.hidden=false;
+      message('');
       renderMarks();
       focusField(get('zone-axis-name'));
     }
+    function repeatPlan() {
+      const [first,last,through]=repeatFields.map(field=>Number(field.value));
+      const genes=regionGenes(), source=[];
+      if (last<first) throw new Error('来源终点要在来源起点之后，或与起点相同。');
+      if (through<=last) throw new Error('填充终点要在来源终点之后。');
+      for (let index=first;index<=last;index++) {
+        if (!genes?.has(index)) throw new Error(`${axisLabel(index)}还没设置基因。请先补齐来源范围。`);
+        source.push(genes.get(index));
+      }
+      return Array.from({length:through-last},(_,offset)=>{
+        const index=last+1+offset, gene=source[offset%source.length], current=genes.get(index);
+        return {index,gene,replaces:!!current && (gene.name!==current.name || gene.role!==current.role)};
+      });
+    }
+    function paintRepeatPlan() {
+      const status=get('repeat-genes-status'), list=get('repeat-genes-preview'), apply=get('repeat-genes-apply');
+      list.replaceChildren();
+      try {
+        const plan=repeatPlan(), replaced=plan.filter(item=>item.replaces).length;
+        status.textContent=`将填充 ${plan.length} ${byColumn()?'列':'行'}。`+(replaced?`其中 ${replaced} 处已有不同的基因或角色。`:'');
+        status.classList.remove('error');
+        list.append(...plan.map(({index,gene,replaces})=>node('li',
+          `${axisLabel(index)} · ${gene.name}${gene.role==='reference'?'（内参）':''}${replaces?' · 将替换':''}`)));
+        apply.disabled=false;
+      } catch (error) {
+        status.textContent=error.message;
+        status.classList.add('error');
+        apply.disabled=true;
+      }
+    }
+    function openRepeat() {
+      if (!selected || !axisEditor.hidden || preview || !regionGenes()?.size) return;
+      const minimum=byColumn()?1:0, maximum=byColumn()?engine().columns:engine().letters.length-1;
+      const genes=regionGenes(), first=Math.min(...genes.keys());
+      let last=first;
+      while (last<maximum && genes.has(last+1)) last++;
+      const sampleAxes=(currentLayout()?.areas || []).flatMap(area=>planner().regionWells(area)
+        .map(well=>byColumn()?Number(well.slice(1)):engine().letters.indexOf(well[0])));
+      const suggested=Math.max(...sampleAxes,last);
+      for (const field of repeatFields) {
+        field.replaceChildren(...Array.from({length:maximum-minimum+1},(_,offset)=>{
+          const index=minimum+offset;
+          return createOption(String(index),axisLabel(index));
+        }));
+      }
+      repeatFields[0].value=String(first);
+      repeatFields[1].value=String(last);
+      repeatFields[2].value=String(Math.min(maximum,suggested>last?suggested:last+(last-first+1)));
+      get('repeat-genes-help').textContent=byColumn()
+        ? '选择已设置好的连续列。从来源终点的下一列开始，按原顺序重复基因和角色。'
+        : '选择已设置好的连续行。从来源终点的下一行开始，按原顺序重复基因和角色。';
+      paintRepeatPlan();
+      repeatDialog.showModal();
+    }
+    for (const field of repeatFields) field.addEventListener('change',paintRepeatPlan);
+    for (const id of ['zone-repeat-genes','board-repeat-genes']) get(id).addEventListener('click',openRepeat);
+    get('repeat-genes-cancel').addEventListener('click',()=>repeatDialog.close());
+    get('repeat-genes-form').addEventListener('submit',event=>{
+      event.preventDefault();
+      if (get('repeat-genes-apply').disabled) return;
+      const plan=repeatPlan();
+      const replaced=plan.filter(item=>item.replaces).map(item=>axisLabel(item.index));
+      if (replaced.length && !window.confirm(`要替换这些位置已有的基因设置吗？\n${replaced.join('、')}`)) return;
+      const genes=regionGenes();
+      for (const {index,gene} of plan) genes.set(index,{...gene});
+      ensureLayout().dirty=true;
+      repeatDialog.close();
+      paintAxisLabels();
+      invalidate(`已重复填充 ${axisLabel(plan[0].index)}到 ${axisLabel(plan.at(-1).index)}的基因。`);
+    });
     function paintGrid() {
       const head=node('thead'), row=node('tr'), body=node('tbody');
       grid.dataset.layout=byColumn()?'columns':'rows';
@@ -2576,34 +2794,40 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       paintOverlays();
     }
     function paintAxisLabels() {
-      for (const button of grid.querySelectorAll('[data-axis]')) {
+      const table=inline?boardGrid:grid;
+      table.dataset.layout=byColumn()?'columns':'rows';
+      if (inline) table.classList.toggle('has-row-genes',!!currentLayout()?.genes['genes-by-row'].size);
+      if (inline) get('board-region-axis').value=regionDirection();
+      for (const button of table.querySelectorAll('[data-axis]')) {
         const {axis,index}=button.dataset, editable=axis===geneAxis();
         const position=axis==='row'?index+' 行':index+' 列';
-        const gene=editable ? regionGenes()?.get(axisIndex(axis,index)) : null;
-        button.classList.toggle('gene-axis',editable);
+        const direction=axis==='col'?'genes-by-column':'genes-by-row';
+        const gene=editable || inline ? currentLayout()?.genes[direction].get(axisIndex(axis,index)) : null;
+        button.classList.toggle('gene-axis',editable && !!selected);
         button.classList.toggle('has-gene',!!gene);
         button.textContent=index;
         if (gene) {
           button.append(node('span',gene.name,'zone-axis-gene'));
           button.style.setProperty('--zone-gene',geneColor(gene.name));
         }
-        button.disabled=!selected || !editable;
-        button.title=editable ? `设置 ${position}的基因${gene ? ' · '+gene.name+(gene.role==='reference'?'（内参）':'') : ''}` : position;
+        button.disabled=!selected || (inline?!!preview:!editable);
+        button.title=editable || inline ? `设置 ${position}的基因${gene ? ' · '+gene.name+(gene.role==='reference'?'（内参）':'') : ''}` : position;
         button.setAttribute('aria-label',button.title);
       }
     }
     function paintOverlays() {
-      if (!dialog.open || !grid.rows.length) {overlays.replaceChildren();return;}
-      const frame=overlays.getBoundingClientRect(), isPreview=!!preview;
+      const table=inline?boardGrid:grid, layer=inline?boardOverlays:overlays;
+      if ((!inline && !dialog.open) || !table.tBodies[0]?.rows.length || !selected) {layer.replaceChildren();return;}
+      const frame=layer.getBoundingClientRect(), isPreview=!!preview;
       const areas=isPreview ? preview.boxes.filter(box=>box.plate===selected) : (currentLayout()?.areas || []).flatMap(area=>
         planner().selectionRects(planner().regionWells(area)).map(part=>({...area,...part})));
-      const coordinates=(row,col)=>grid.tBodies[0].rows[row].cells[col].firstElementChild;
+      const coordinates=(row,col)=>table.tBodies[0].rows[row].cells[col].firstElementChild;
       const boxes=areas.map(area=>{
         const {top,bottom,left,right}=limits(area);
         const firstCell=coordinates(top,left), lastCell=coordinates(bottom,right);
         const start=firstCell.getBoundingClientRect(), end=lastCell.getBoundingClientRect();
         const box=node('div',null,'zone-overlay '+(isPreview?'replicates':'sample'));
-        box.append(node('span',area.sample));
+        if (!inline) box.append(node('span',area.sample));
         if (isPreview) {
           box.style.setProperty('--zone-gene',geneColor(area.gene));
           box.classList.toggle('conflict',engine().rectangle(area.first,area.last).some(well=>{
@@ -2617,10 +2841,31 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         box.style.height=end.bottom-start.top+'px';
         return box;
       });
-      overlays.replaceChildren(...boxes);
+      layer.replaceChildren(...boxes);
     }
-    new ResizeObserver(paintOverlays).observe(grid);
+    const resizeObserver=new ResizeObserver(paintOverlays);
+    resizeObserver.observe(grid);
+    resizeObserver.observe(boardGrid);
+    function paintBoardMarks() {
+      const assigned=new Map((preview?.rows || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
+      const conflicts=new Set([...(preview?.replaced || []),...(preview?.cleared || [])].filter(row=>row.plate===selected).map(row=>row.well));
+      const areas=new Map((currentLayout()?.areas || []).flatMap(area=>planner().regionWells(area).map(well=>[well,area])));
+      const showGenes=get('well-display').value==='gene';
+      for (const cell of boardGrid.querySelectorAll('[data-well]')) {
+        const well=cell.dataset.well, row=assigned.get(well), area=areas.get(well);
+        cell.classList.toggle('board-planned',!!row);
+        cell.classList.toggle('conflict',conflicts.has(well));
+        if (row) cell.style.setProperty('--zone-gene',geneColor(row.gene));
+        const detail=row ? `预览 · ${row.group} / ${row.sample} · ${row.gene} · 副孔 ${row.rep}` :
+          area ? `样本区域 · ${area.group} / ${area.sample}` : '';
+        cell.title=[cell.dataset.description,detail].filter(Boolean).join(' · ');
+        cell.setAttribute('aria-label',cell.title);
+        cell.textContent=row && showGenes ? row.gene : cell.dataset.label;
+      }
+      controls();
+    }
     function renderMarks() {
+      if (inline) {paintAxisLabels();paintBoardMarks();return;}
       const assigned=new Map((preview?.rows || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
       const existing=new Map((demo?[]:api.mapping(true) || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
       const conflicts=new Set([...(preview?.replaced || []),...(preview?.cleared || [])].filter(row=>row.plate===selected).map(row=>row.well));
@@ -2642,6 +2887,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       paintDraft();
     }
     function paintDraft() {
+      if (inline) {controls();return;}
       const draft=new Set(preview?[]:picked);
       for (const cell of grid.querySelectorAll('[data-zone-well]')) {
         const chosen=draft.has(cell.dataset.zoneWell);
@@ -2666,6 +2912,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     }
     function setPicked(wells,syncField=true) {
       picked=wells;
+      if (inline) api.setBoardSelection(wells);
       if (syncField && !sampleEditor.hidden) {
         if (wells.length) updateRangeField();
         else {get('zone-range-input').value='';get('zone-sample-range').textContent='';}
@@ -2682,9 +2929,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       return planner().regionPlan({plates,layouts:configured,previous,existing:demo?[]:api.mapping(),replace:get('zone-replace').checked});
     }
     function makePreview() {
+      if (!demo && pendingEdits().length) {
+        message(`请先保存或取消 ${pendingEdits().join('、')} 正在编辑的内容。`,true);
+        return;
+      }
       try {
         rememberDraft();
         preview=planCurrent();
+        previewSource=sourceKey();
+        if (inline) api.clearBoardSelection();
         resetDraft();closeEditors();
         const plates=new Set(preview.rows.map(row=>row.plate));
         const groups=preview.rows.filter(row=>row.rep===1).length;
@@ -2703,13 +2956,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         const rows=[...plan.retained,...plan.rows];
         const changed=plan.replaced.length+plan.cleared.length;
         if (changed && !window.confirm(`将重新写入 ${changed} 个曾由其他方式分配或清除的孔位。确定保存吗？`)) return;
-        api.commit(rows,selected,plan.required,plan.removed.length);
         for (const [id,layout] of sampleLayouts) {
           layout.saved=plan.rows.filter(row=>row.plate===id);
           layout.source=mappingSource(rows,id);
           layout.dirty=false;
         }
-        dialog.close();
+        preview=previewSource=null;
+        api.commit(rows,selected,plan.required,plan.removed.length);
+        if (inline) message('');
+        else leaveDialog();
       } catch (error) {message(error.message,true);}
     }
     function hit(element) {
@@ -2777,7 +3032,6 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     grid.addEventListener('click',event=>{
       const axis=event.target.closest('[data-axis]');
       if (axis && !axis.disabled) {
-        if (!sampleEditor.hidden) {message('请先保存或取消正在编辑的样本。',true);return;}
         editAxis(axisIndex(axis.dataset.axis,axis.dataset.index));return;
       }
       const button=hit(event.target);
@@ -2815,39 +3069,71 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const sample=sampleEditor.hidden?null:{
         area:editingArea,name:get('zone-sample-name').value,group:get('zone-sample-group').value,range:get('zone-range-input').value,
       };
-      const axis=axisEditor.hidden?null:{index:editingAxis,name:get('zone-axis-name').value,role:get('zone-axis-role').value};
+      const axis=axisEditor.hidden?null:{index:editingAxis,direction:axisDirection,name:get('zone-axis-name').value,role:get('zone-axis-role').value};
+      if (inline && !sample && !axis) return;
       if (picked.length || sample || axis) selectionByPlate.set(selected,{picked,anchor,waiting,sample,axis});
       else selectionByPlate.delete(selected);
     }
     function resumeDraft() {
       if (demo || preview) return;
       const state=selectionByPlate.get(selected);
-      if (!state) return;
+      if (!state || (inline && !state.sample && !state.axis)) return;
       selectionByPlate.delete(selected);
       ({picked,anchor,waiting}=state);
       if (state.sample) {
+        if (inline) api.setBoardSelection(picked);
         editSample(null,true);
         editingArea=currentLayout()?.areas.includes(state.sample.area)?state.sample.area:null;
         get('zone-remove-sample').hidden=!editingArea;
         get('zone-sample-name').value=state.sample.name;
         get('zone-sample-group').value=state.sample.group;
         get('zone-range-input').value=state.sample.range;
-      } else if (state.axis) {
-        editAxis(state.axis.index);
+      }
+      if (state.axis) {
+        editAxis(state.axis.index,state.axis.direction);
         get('zone-axis-name').value=state.axis.name;
         get('zone-axis-role').value=state.axis.role;
       }
       paintDraft();
     }
     function open() {
+      if (inline) rememberDraft();
+      boardOverlays.replaceChildren();
+      inline=false;
+      placeEditors();
       demo=false;selected=api.active();
       restoreLayouts();
       dialog.querySelector(`[name="zone-selection-mode"][value="${api.selectionMode()}"]`).checked=true;
       get('zone-append').checked=api.appendMode();
-      resetDraft();closeEditors();preview=null;message('');paintPlates();
+      resetDraft();closeEditors();preview=previewSource=null;message('');paintPlates();
       if (!dialog.open) dialog.showModal();
       paintOverlays();
       resumeDraft();
+    }
+    function syncBoard(rows) {
+      if (!inline) return;
+      const next=api.active(), switched=selected!==next;
+      if (switched) {
+        rememberDraft();
+        selected=next;resetDraft();closeEditors();
+        if (!preview) message('');
+      }
+      restoreLayouts(rows);
+      if (preview && previewSource!==sourceKey()) {
+        preview=previewSource=null;
+        message('孔板或映射已更新，请重新自动识别。');
+      }
+      if (switched && !preview) resumeDraft();
+      renderMarks();paintOverlays();
+    }
+    function leaveDialog() {
+      overlays.replaceChildren();
+      inline=true;demo=false;selected='';
+      resetDraft();closeEditors();preview=previewSource=null;
+      placeEditors();
+      dialog.close();
+      message('');
+      syncBoard(api.mapping(true));
     }
     const hasSettings=layout=>!!layout && (layout.areas.length || Object.values(layout.genes).some(genes=>genes.size));
     const shareable=()=>available().map(({id})=>[id,layouts().get(id)]).filter(([,layout])=>hasSettings(layout));
@@ -2869,7 +3155,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       get('zone-share-apply').hidden=true;
       shareStatus('',false,true);
     }
-    get('zone-share').addEventListener('click',()=>{
+    function openShare() {
       const entries=shareable(), current=entries.some(([id])=>id===selected);
       const options=current?[createOption(selected,`当前板 · ${selected}`)]:[];
       if (!current && entries.length===1) options.push(createOption(entries[0][0],entries[0][0]));
@@ -2882,7 +3168,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       clearLayoutImport();
       get('zone-share-import').open=!entries.length;
       shareDialog.showModal();
-    });
+    }
+    get('zone-share').addEventListener('click',openShare);
+    get('board-share').addEventListener('click',openShare);
     get('zone-share-close').addEventListener('click',()=>shareDialog.close());
     shareDialog.addEventListener('close',()=>{shareLoad++;});
     shareScope.addEventListener('change',()=>{shareLoad++;shareText.hidden=true;shareStatus('');});
@@ -2972,9 +3260,17 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         sampleLayouts.set(id,{...(sampleLayouts.get(id) || newLayout()),direction,areas,genes,dirty:true});
         selectionByPlate.delete(id);
       }
-      demo=false;selected=targets.includes(selected)?selected:targets[0];
-      resetDraft();closeEditors();preview=null;get('zone-replace').checked=false;
-      shareDialog.close();paintPlates();
+      const next=targets.includes(selected)?selected:targets[0];
+      demo=false;
+      resetDraft();closeEditors();preview=previewSource=null;get('zone-replace').checked=false;
+      shareDialog.close();
+      if (inline) {
+        api.switchPlate(next);
+        api.clearBoardSelection();
+        syncBoard(api.mapping(true));
+      } else {
+        selected=next;paintPlates();
+      }
       message(`已载入 ${targets.join('、')} 的布局。核对后可自动识别并保存映射。`);
     });
     get('open-zones').addEventListener('click',()=>open());
@@ -2989,7 +3285,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       paintPlates();makePreview();
     });
     get('zone-real').addEventListener('click',open);
-    get('zone-close').addEventListener('click',()=>{rememberDraft();dialog.close();});
+    get('zone-close').addEventListener('click',()=>{rememberDraft();leaveDialog();});
     get('zone-plate').addEventListener('change',event=>{
       rememberDraft();selected=event.target.value;resetDraft();closeEditors();
       if (!preview) message('');
@@ -2998,16 +3294,51 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     get('zone-selection-modes').addEventListener('change',()=>{waiting=false;api.setSelectionMode(mode());paintDraft();});
     get('zone-append').addEventListener('change',event=>{waiting=false;api.setAppendMode(event.target.checked);paintDraft();});
     get('zone-clear-selection').addEventListener('click',()=>{anchor='';waiting=false;setPicked([]);});
-    get('zone-region-axis').addEventListener('change',event=>{
+    for (const id of ['zone-region-axis','board-region-axis']) get(id).addEventListener('change',event=>{
       const layout=ensureLayout();layout.direction=event.target.value;layout.dirty=true;
-      resetDraft();closeEditors();preview=null;message('');paintGrid();
+      if (!sampleEditor.hidden) refreshRangeCount();
+      invalidate();
+      if (!inline) paintAxisLabels();
     });
     get('zone-name-area').addEventListener('click',()=>editSample());
-    function finishEditing(note='') {resetDraft();closeEditors();invalidate(note);}
-    for (const id of ['zone-cancel-sample','zone-cancel-axis']) get(id).addEventListener('click',()=>finishEditing());
+    function refreshRangeCount() {
+      try {readSampleRange();showRangeCount();}
+      catch {get('zone-sample-range').textContent='';}
+    }
+    function finishSample(note='') {
+      const focus=inline && boardGrid.querySelector(`[data-well="${picked[0]}"]`);
+      sampleEditor.hidden=true;editingArea=null;
+      resetDraft();
+      if (inline) api.clearBoardSelection();
+      invalidate(note);
+      if (focus) focus.focus({preventScroll:true});
+    }
+    function finishAxis(note='') {
+      const columns=axisDirection==='genes-by-column';
+      const index=columns?editingAxis:engine().letters[editingAxis];
+      const table=inline?boardGrid:grid;
+      const focus=table.querySelector(`[data-axis="${columns?'col':'row'}"][data-index="${index}"]`);
+      axisEditor.hidden=true;editingAxis=axisDirection=null;
+      if (!sampleEditor.hidden) refreshRangeCount();
+      invalidate(note);
+      if (!inline) paintAxisLabels();
+      focus?.focus({preventScroll:true});
+    }
+    get('zone-cancel-sample').addEventListener('click',()=>finishSample());
+    get('zone-cancel-axis').addEventListener('click',()=>finishAxis());
+    function cancelEditor(target) {
+      if (!sampleEditor.hidden && (axisEditor.hidden || sampleEditor.contains(target))) finishSample();
+      else finishAxis();
+    }
+    get('board-region-editors').addEventListener('keydown',event=>{
+      if (event.key!=='Escape' || !editing()) return;
+      event.preventDefault();
+      cancelEditor(event.target);
+    });
     dialog.addEventListener('cancel',event=>{
-      if (sampleEditor.hidden && axisEditor.hidden) {rememberDraft();return;}
-      event.preventDefault();finishEditing();
+      event.preventDefault();
+      if (editing()) cancelEditor(document.activeElement);
+      else {rememberDraft();leaveDialog();}
     });
     sampleEditor.addEventListener('submit',event=>{
       event.preventDefault();
@@ -3017,6 +3348,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       try {wells=readSampleRange();}
       catch (error) {message(`${selected} · ${error.message} 当前板范围为 A1–${engine().lastWell}。`,true);return;}
       const layout=ensureLayout(), areas=layout.areas;
+      if (editingArea && !areas.includes(editingArea)) {finishSample('孔位映射已更新，请重新选择样本区域。');return;}
       const occupied=new Set(areas.filter(area=>area!==editingArea).flatMap(area=>planner().regionWells(area)));
       const conflict=wells.find(well=>occupied.has(well));
       if (conflict) {message(`${selected} ${conflict} 已属于另一个样本区域。请调整选区。`,true);return;}
@@ -3026,28 +3358,41 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       else areas.push(area);
       layout.dirty=true;
       if (!demo) lastGroup=group;
-      paintSampleList();finishEditing(`已保存 ${sample} · ${pretty(area)}。`);
+      paintSampleList();finishSample(`已保存 ${sample} · ${pretty(area)}。`);
     });
     get('zone-remove-sample').addEventListener('click',()=>{
       if (!editingArea) return;
       const layout=currentLayout();
+      if (!layout?.areas.includes(editingArea)) {finishSample('孔位映射已更新，请重新选择样本区域。');return;}
       layout.areas=layout.areas.filter(area=>area!==editingArea);
       layout.dirty=true;
-      paintSampleList();finishEditing('已移除样本区域。');
+      paintSampleList();finishSample('已移除样本区域。');
     });
     axisEditor.addEventListener('submit',event=>{
       event.preventDefault();
       const name=get('zone-axis-name').value.trim(), role=get('zone-axis-role').value;
       if (!name || /[\t\r\n]/.test(name)) {message('请填写有效的基因名称。',true);return;}
-      ensureLayout().dirty=true;regionGenes().set(editingAxis,{name,role});
-      const next=editingAxis+1, position=axisLabel(editingAxis);
-      paintAxisLabels();finishEditing(`已设置 ${position}的基因 ${name}。`);
-      if (event.submitter===get('zone-axis-next')) editAxis(next);
+      const layout=ensureLayout(), direction=axisDirection;
+      const next=editingAxis+1, position=axisLabel(editingAxis,direction);
+      layout.direction=direction;layout.dirty=true;
+      get('zone-region-axis').value=direction;
+      layout.genes[direction].set(editingAxis,{name,role});
+      finishAxis(`已设置 ${position}的基因 ${name}。`);
+      if (event.submitter===get('zone-axis-next')) editAxis(next,direction);
     });
     get('zone-remove-axis').addEventListener('click',()=>{
-      ensureLayout().dirty=true;regionGenes()?.delete(editingAxis);paintAxisLabels();finishEditing('已清除此位置的基因。');
+      const layout=ensureLayout();
+      layout.dirty=true;layout.genes[axisDirection].delete(editingAxis);
+      finishAxis('已清除此位置的基因。');
     });
-    get('zone-select-mode').addEventListener('click',()=>{finishEditing();resumeDraft();});
+    get('zone-reference-preset').addEventListener('change',event=>{
+      if (!event.target.value) return;
+      get('zone-axis-name').value=event.target.value;
+      get('zone-axis-role').value='reference';
+    });
+    get('zone-axis-name').addEventListener('input',()=>{get('zone-reference-preset').value='';});
+    get('zone-axis-role').addEventListener('change',()=>{get('zone-reference-preset').value='';});
+    get('zone-select-mode').addEventListener('click',()=>{invalidate();resumeDraft();});
     get('zone-range-input').addEventListener('input',()=>{
       try {const wells=readSampleRange();anchor=wells[0];waiting=false;setPicked(wells,false);showRangeCount();}
       catch {get('zone-sample-range').textContent='';}
@@ -3055,6 +3400,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     get('zone-replace').addEventListener('change',()=>{if (preview) makePreview();});
     get('zone-preview').addEventListener('click',makePreview);
     get('zone-write').addEventListener('click',commit);
+    get('board-preview').addEventListener('click',()=>{
+      makePreview();
+      if (preview) get(preview.problems.length?'board-continue':'board-write').focus();
+    });
+    get('board-write').addEventListener('click',commit);
+    get('board-continue').addEventListener('click',()=>{
+      invalidate();
+      get('board-preview').focus();
+    });
     context.bind(grid,event=>{
       const cell=hit(event.target);
       if (!cell) return null;
@@ -3062,15 +3416,45 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const area=areaAt(well);
       const draft=!preview && picked.includes(well);
       const items=[];
-      if (area) items.push({label:'编辑样本区域…',action:()=>editSample(area)});
+      if (area) items.push({label:'编辑样本区域…',primary:true,action:()=>editSample(area)});
       if (preview) items.push({label:'查看此孔的预览分配',action:()=>{info.textContent=cell.title;}});
-      else if (!area || draft) items.push({label:'设为样本…',action:()=>{
+      else if (!area || draft) items.push({label:'将所选孔设为样本…',primary:!area,action:()=>{
         if (!draft) {anchor=well;setPicked([well]);}
         waiting=false;editSample();
       }});
       return {anchor:cell,title:selected+' · '+well,subtitle:area?`${area.group} / ${area.sample}`:'',items};
     });
-    return {reset() {demo=false;selected='';sampleLayouts.clear();exampleLayouts.clear();selectionByPlate.clear();lastGroup='Group A';resetDraft();closeEditors();preview=null;get('zone-replace').checked=false;get('zone-append').checked=false;}};
+    placeEditors();
+    return {
+      syncBoard,
+      selectionChanged(wells) {
+        if (!inline || selected!==api.active() || sampleEditor.hidden) return;
+        if (wells.length===picked.length && wells.every((well,index)=>well===picked[index])) return;
+        picked=wells;updateRangeField();
+      },
+      sampleAt:areaAt,
+      editBoardSample(wells,area) {
+        if (!sampleEditor.hidden) {focusField(get('zone-sample-name'));return;}
+        picked=wells;editSample(area);
+      },
+      editBoardAxis(button) {
+        const {axis,index}=button.dataset;
+        editAxis(axisIndex(axis,index),axis==='col'?'genes-by-column':'genes-by-row');
+      },
+      boardPreview:()=>inline && !!preview,
+      boardSampleEditing:()=>inline && !sampleEditor.hidden,
+      cancelBoardSample() {if (inline && !sampleEditor.hidden) finishSample();},
+      boardAxisEditing:()=>inline && !axisEditor.hidden,
+      inspectBoard(cell) {
+        if (preview) message(cell.title);
+      },
+      reset() {
+        demo=false;selected='';layoutSource=previewSource=null;
+        sampleLayouts.clear();exampleLayouts.clear();selectionByPlate.clear();lastGroup='Group A';
+        resetDraft();closeEditors();preview=null;message('');
+        get('zone-replace').checked=false;get('zone-append').checked=false;
+      },
+    };
   }
   globalThis.qpcrZoneUI={init};
 })();
@@ -3563,6 +3947,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   let customSequence=0;
   const $mapping = get('mapping'), $status = get('status'), $positions = get('positions'), $matrix = get('matrix');
   const assignDialog = get('assign-dialog');
+  let assignmentBoardSelection=null;
   const selectionByPlate=new Map();
   let assignmentSeed=null, manualDefaults={group:'Group A',gene:'',geneRole:'target'};
   const appendMode = () => get('append-selection').checked;
@@ -3666,7 +4051,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     try { return engine.parseMapping($mapping.value); }
     catch (error) { if (!quiet) throw error; return null; }
   }
-  function colorSelection() {
+  function colorSelection(syncRegion = true) {
     let positions;
     try { positions = new Set(selectedPositions()); }
     catch { positions = new Set(); }
@@ -3682,10 +4067,11 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     get('selection-info').textContent = plate && positions.size ? `已选 ${positions.size} 孔${blanks ? `，其中 ${blanks} 孔无有效 Cp，保留原位` : ''}。` : '';
     get('board-selection').textContent = positions.size ? `已选 ${positions.size} 孔` : '尚未选孔';
     const assign = get('open-assign');
-    assign.disabled = !plate || !positions.size;
+    assign.disabled = !plate || !positions.size || zoneInterface.boardAxisEditing();
     get('well-actions').disabled = !plate || !positions.size;
     get('apply-range').disabled = !plate || !get('quick-range').value.trim();
     get('clear-wells').disabled = !positions.size && !$positions.value;
+    if (syncRegion && !assignmentBoardSelection) zoneInterface.selectionChanged([...positions]);
     paintSelectionBoards([...positions]);
     if (assignDialog.open) {
       get('unmap').disabled=!(readMapping(true)||[]).some(row=>row.plate===currentId && positions.has(row.well));
@@ -3694,8 +4080,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   }
   function renderMatrix() {
     const current = selectedPlate();
-    const rows = readMapping(true) || [];
-    const mapped = new Map(rows.filter(row => row.plate === current?.id).map(row => [row.well,row]));
+    const rows = readMapping(true);
+    const mapped = new Map((rows || []).filter(row => row.plate === current?.id).map(row => [row.well,row]));
     const counts = new Map();
     const lateColor = current?.lateColor ?? lateDefaults.lateColor;
     const lateThreshold = current?.lateThreshold;
@@ -3713,7 +4099,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const heading = node('button', number, 'well-axis');
       heading.type = 'button';
       heading.disabled = !current;
-      heading.dataset.axis = 'column';
+      heading.dataset.axis = 'col';
       heading.dataset.index = number;
       heading.setAttribute('aria-label',`选择第 ${number} 列`);
       label.append(heading);
@@ -3760,14 +4146,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
           button.classList.add('late');
           button.style.setProperty('--late-color', lateColor);
         }
-        button.title = [current?.id, '孔 '+position, record ? `Cp: ${record.raw || '空'}${record.excluded ? '（仪器排除）' : ''}` : '无仪器孔记录', record?.late ? record.status : mark, mapping ? [mapping.use,mapping.group,mapping.sample,mapping.gene,mapping.rep && `重复 ${mapping.rep}`].filter(Boolean).join(' / ') : null].filter(Boolean).join(' · ');
-        button.setAttribute('aria-label', button.title);
+        button.dataset.description = [current?.id, '孔 '+position, record ? `Cp: ${record.raw || '空'}${record.excluded ? '（仪器排除）' : ''}` : '无仪器孔记录', record?.late ? record.status : mark, mapping ? [{sample:'样本孔',ntc:'阴性对照',ignore:'已排除'}[mapping.use],mapping.group,mapping.sample,mapping.gene,mapping.rep && `副孔 ${mapping.rep}`].filter(Boolean).join(' / ') : null].filter(Boolean).join(' · ');
+        button.dataset.label=finishLabel;
         cell.append(button);
         row.append(cell);
       }
       body.append(row);
     }
     $matrix.replaceChildren(head,body);
+    zoneInterface.syncBoard(rows);
     const legend = get('gene-legend');
     legend.replaceChildren(...[...counts].map(([gene, count]) => {
       const item = node('span');
@@ -4095,8 +4482,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     $positions.value = '';
     get('quick-range').value = '';
   }
-  get('clear-wells').addEventListener('click', () => { clearSelection(); colorSelection(); mapStatus(''); });
-  get('clear-board-selections').addEventListener('click',()=>{selectionByPlate.clear();clearSelection();colorSelection();mapStatus('');});
+  get('clear-wells').addEventListener('click', () => { zoneInterface.cancelBoardSample(); clearSelection(); colorSelection(); mapStatus(''); });
+  get('clear-board-selections').addEventListener('click',()=>{zoneInterface.cancelBoardSample();selectionByPlate.clear();clearSelection();colorSelection();mapStatus('');});
   const applyQuickRange = guarded(() => {
     const text=engine.selectionWells(get('quick-range').value,columnFirst()).join(',');
     touchCorner = null;
@@ -4130,10 +4517,10 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     try { return selectedPositions().length ? [{text:$positions.value}] : []; }
     catch { return []; }
   }
-  function applySelection(parts) {
+  function applySelection(parts, syncRegion = true) {
     $positions.value = combineSelected(parts).join(',');
     selectionParts = parts;
-    colorSelection();
+    colorSelection(syncRegion);
   }
   function selectRange(start, end, prefix = [], kind = selectionMode()) {
     applySelection([...prefix,{start,end,kind}]);
@@ -4162,7 +4549,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   }
   function openAssignment() {
     const plate = selectedPlate();
-    if (!plate || assignDialog.open) return;
+    if (!plate || assignDialog.open || zoneInterface.boardPreview() || zoneInterface.boardAxisEditing()) return;
     const positions=selectedPositions();
     if (!positions.length) return;
     const chosen=new Set(positions);
@@ -4184,6 +4571,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     get('assign-existing').textContent=saved.length && !common?'选区内有多种映射。保存会重新分配所选孔。':'';
     get('assign-board').textContent = `${plate.id} · ${plate.name}`;
     updateRole();
+    holdSampleSelection();
     assignDialog.showModal();
     colorSelection();
   }
@@ -4193,6 +4581,18 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   }
   get('open-assign').addEventListener('click',openAssignment);
   get('assign-cancel').addEventListener('click', () => assignDialog.close());
+  function holdSampleSelection() {
+    if (!assignmentBoardSelection && zoneInterface.boardSampleEditing()) {
+      assignmentBoardSelection={plate:currentId,positions:$positions.value,parts:selectionParts,anchor,touchCorner};
+    }
+  }
+  assignDialog.addEventListener('close',()=>{
+    const saved=assignmentBoardSelection;
+    assignmentBoardSelection=null;
+    if (saved?.plate!==currentId) return;
+    $positions.value=saved.positions;selectionParts=saved.parts;anchor=saved.anchor;touchCorner=saved.touchCorner;
+    describeSelectionMode();colorSelection(false);
+  });
   const keyAppend=event=>event.ctrlKey || event.metaKey;
   function togglePosition(prefix,position) {
     const previous=combineSelected(prefix);
@@ -4221,7 +4621,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   function openBoardWells(plateId,positions) {
     if (!positions.length) return;
     switchPlate(plateId);
-    if (currentId!==plateId) return;
+    if (currentId!==plateId || zoneInterface.boardPreview() || zoneInterface.boardAxisEditing()) return;
+    holdSampleSelection();
     anchor=positions[0];
     applySelection([{text:positions.join(',')}]);
     openAssignment();
@@ -4256,6 +4657,21 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   }
   function boardMenu(button,anchorElement) {
     if (!selectedPlate()) return null;
+    if (zoneInterface.boardPreview()) return button ? {
+      anchor:button,title:`${currentId} · ${button.dataset.well}`,items:[
+        {label:'查看此孔的识别结果',primary:true,action:()=>zoneInterface.inspectBoard(button)},
+        {label:'继续编辑布局',action:()=>get('board-continue').click()},
+      ],
+    } : null;
+    const axis=anchorElement?.matches('button[data-axis]') ? anchorElement : null;
+    if (axis) {
+      const [first,last]=axisRange(axis), row=axis.dataset.axis==='row';
+      const label=row?axis.dataset.index+' 行':axis.dataset.index+' 列';
+      return {anchor:axis,title:`${currentId} · ${label}`,items:[
+        {label:'设置基因…',primary:true,action:()=>zoneInterface.editBoardAxis(axis)},
+        {label:row?'选中整行':'选中整列',disabled:zoneInterface.boardAxisEditing(),action:()=>{anchor=first;selectRange(first,last,[],'rectangle');}},
+      ]};
+    }
     let positions=[];
     try { positions=selectedPositions(); } catch {}
     if (button && !positions.includes(button.dataset.well)) {
@@ -4267,76 +4683,95 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     if (!positions.length) return null;
     const plateId=currentId;
     const group=positions.length===1 ? replicateGroup(plateId,positions[0]) : [];
-    return {anchor:button || anchorElement,title:`${plateId} · 已选 ${positions.length} 孔`,subtitle:selectionLabel(positions),items:[
-      {label:'编辑选中孔…',primary:true,action:openAssignment},
-      ...(group.length>1?[{label:`编辑此副孔组（${group.length} 孔）…`,action:()=>openBoardWells(plateId,group)}]:[]),
-      {label:'从选区新建批量方案…',separator:true,action:()=>openPlanner({plateId,positions})},
+    const area=zoneInterface.sampleAt(button?.dataset.well || positions[0]);
+    const areaWells=area && planner.regionWells(area);
+    const editArea=area && (positions.length===1 || (positions.length===areaWells.length && positions.every(well=>areaWells.includes(well)))) ? area : null;
+    const editing=zoneInterface.boardAxisEditing();
+    return {anchor:button || anchorElement,title:`${plateId} · 已选 ${positions.length} 孔`,
+      subtitle: selectionLabel(positions)+(editArea?` · ${editArea.group} / ${editArea.sample}`:''),items:[
+      {label:'编辑样本区域…',primary:true,hint:editArea?'修改样本名、分组或孔位':'将所选孔设为同一样本',action:()=>zoneInterface.editBoardSample(positions,editArea)},
+      ...(group.length>1?[{label:`编辑整组副孔（${group.length} 孔）…`,disabled:editing,action:()=>openBoardWells(plateId,group)}]:[]),
+      {label:'手动分配选中孔…',hint:'可设置基因、阴性对照或排除孔',disabled:editing,action:openAssignment},
+      {label:'按名单分配选中孔…',disabled:editing,action:()=>openPlanner({plateId,positions})},
+      {label:'取消选孔',separator:true,action:()=>get('clear-wells').click()},
     ]};
   }
   context.bind($matrix,event=>{
     const button=wellButton(event.target);
     if (button) return boardMenu(button);
     const axis=event.target.closest('button[data-axis]');
-    if (!axis || axis.disabled) return null;
-    const [first,last]=axisRange(axis);
-    let before=[];
-    try {before=selectedPositions();} catch {}
-    if (!engine.rectangle(first,last).every(well=>before.includes(well))) {anchor=first;selectRange(first,last,[],'rectangle');}
-    return boardMenu(null,axis);
+    return axis && !axis.disabled ? boardMenu(null,axis) : null;
   });
   get('well-actions').addEventListener('click',event=>context.open($matrix,boardMenu(null,event.currentTarget),event));
+  function openSampleForSelection() {
+    if (zoneInterface.boardSampleEditing()) return;
+    const wells=currentSelection();
+    const area=zoneInterface.sampleAt(wells[0]);
+    const occupied=area && planner.regionWells(area);
+    const matches=occupied && occupied.length===wells.length && wells.every(well=>occupied.includes(well));
+    zoneInterface.editBoardSample(wells,matches?area:null);
+  }
+  function chooseCorner(position) {
+    if (touchCorner) {
+      const {position:start,prefix}=touchCorner;
+      touchCorner=null;
+      anchor=start;
+      selectRange(start,position,prefix);
+      if (start!==position && !prefix.length && !appendMode()) openSampleForSelection();
+    } else {
+      anchor=position;
+      touchCorner={position,prefix:selectionBase()};
+      selectRange(position,position,touchCorner.prefix);
+    }
+    describeSelectionMode();
+  }
   $matrix.addEventListener('pointerdown', event => {
     const button = wellButton(event.target);
-    if (!button || !event.isPrimary || event.button !== 0) return;
+    if (!button || !event.isPrimary || event.button !== 0 || zoneInterface.boardPreview() || zoneInterface.boardAxisEditing()) return;
     const position = button.dataset.well;
     if (event.pointerType === 'touch') {
       touchTap = {id:event.pointerId,position};
       return;
     }
-    touchCorner = null;
-    describeSelectionMode();
+    const twoPoints=get('touch-range').checked && !event.shiftKey && !keyAppend(event);
+    if (!twoPoints) {touchCorner=null;describeSelectionMode();}
     const extending = !!(event.shiftKey && anchor);
     const original={anchor,parts:selectionParts,positions:$positions.value};
     if (!extending) anchor = position;
-    drag = {id:event.pointerId,start:anchor,end:position,moved:extending,modifier:keyAppend(event),
+    drag = {id:event.pointerId,start:anchor,end:position,moved:false,extending,modifier:keyAppend(event),twoPoints,
       original,prefix:selectionBase(appendMode() || keyAppend(event))};
-    selectRange(anchor,position,drag.prefix);
+    if (!twoPoints) selectRange(anchor,position,drag.prefix);
     button.setPointerCapture(event.pointerId);
   });
+  function updateDrag(position) {
+    if (!position || position === drag.end) return;
+    drag.end=position;
+    drag.moved=true;
+    selectRange(drag.start,position,drag.prefix);
+  }
   $matrix.addEventListener('pointermove', event => {
     if (drag?.id !== event.pointerId) return;
-    const position = gridHit($matrix,event,wellButton)?.dataset.well;
-    if (!position || position === drag.end) return;
-    drag.end = position;
-    drag.moved = true;
-    selectRange(drag.start,position,drag.prefix);
+    updateDrag(gridHit($matrix,event,wellButton)?.dataset.well);
   });
   $matrix.addEventListener('pointerup', event => {
     if (touchTap?.id === event.pointerId) {
       const {position} = touchTap;
       touchTap = null;
       if (gridHit($matrix,event,wellButton)?.dataset.well !== position) return;
-      if (!get('touch-range').checked) {
-        selectPoint(position,event);
-      } else if (touchCorner) {
-        selectRange(touchCorner.position,position,touchCorner.prefix);
-        touchCorner = null;
-      } else {
-        touchCorner = {position,prefix:selectionBase()};
-        selectRange(position,position,touchCorner.prefix);
-      }
-      describeSelectionMode();
+      if (get('touch-range').checked) chooseCorner(position);
+      else selectPoint(position,event);
       return;
     }
     if (drag?.id !== event.pointerId) return;
-    const position = gridHit($matrix,event,wellButton)?.dataset.well;
-    if (position && position !== drag.end) {
-      drag.moved = true;
-      selectRange(drag.start,position,drag.prefix);
+    updateDrag(gridHit($matrix,event,wellButton)?.dataset.well);
+    const {start,moved,extending,modifier,twoPoints,prefix}=drag;
+    drag=null;
+    if (!moved && twoPoints) chooseCorner(start);
+    else {
+      if (!moved && !extending && modifier) togglePosition(prefix,start);
+      touchCorner=null;describeSelectionMode();
+      if (moved && !modifier && !prefix.length && !appendMode()) openSampleForSelection();
     }
-    const modifier=drag.modifier;
-    if (!drag.moved && modifier) togglePosition(drag.prefix,drag.start);
-    drag = null;
   });
   for (const name of ['pointercancel','lostpointercapture']) $matrix.addEventListener(name, event => {
     if (drag?.id === event.pointerId) {
@@ -4348,6 +4783,11 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   $matrix.addEventListener('click', event => {
     const axis = event.target.closest('button[data-axis]');
     if (axis && !axis.disabled) {
+      if (!event.shiftKey && !keyAppend(event)) {
+        zoneInterface.editBoardAxis(axis);
+        return;
+      }
+      if (zoneInterface.boardAxisEditing()) return;
       touchCorner = null;
       describeSelectionMode();
       const [first,last]=axisRange(axis);
@@ -4355,15 +4795,25 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       return;
     }
     const button = wellButton(event.target);
-    if (button && event.detail === 0) selectPoint(button.dataset.well,event);
+    if (!button) return;
+    if (zoneInterface.boardPreview()) zoneInterface.inspectBoard(button);
+    else if (event.detail===0 && !zoneInterface.boardAxisEditing()) {
+      if (get('touch-range').checked && !event.shiftKey && !keyAppend(event)) chooseCorner(button.dataset.well);
+      else selectPoint(button.dataset.well,event);
+    }
   });
   $matrix.addEventListener('dblclick',event=>{
     const well=wellButton(event.target)?.dataset.well;
-    if (well) openBoardWells(currentId,replicateGroup(currentId,well));
+    if (well && !zoneInterface.boardPreview() && !zoneInterface.boardAxisEditing()) openBoardWells(currentId,replicateGroup(currentId,well));
   });
   $matrix.addEventListener('keydown',event=>{
     const button=wellButton(event.target);
-    if (!button) return;
+    if (!button || zoneInterface.boardAxisEditing()) return;
+    if (zoneInterface.boardPreview()) {
+      const next=engine.adjacentWell(button.dataset.well,event.key);
+      if (next) {event.preventDefault();$matrix.querySelector(`[data-well="${next}"]`)?.focus();}
+      return;
+    }
     if (event.key==='Enter' && button) {
       event.preventDefault();
       if (!$positions.value.trim()) selectPoint(button.dataset.well,event);
@@ -4404,7 +4854,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   const repeatOptions=Array.from({length:engine.maxReplicates},(_,index)=>index+1);
   get('rep').replaceChildren(...repeatOptions.map(value=>createOption(String(value),String(value))));
   get('batch-size').append(...repeatOptions.map(value=>createOption(String(value),String(value))));
-  get('reference-preset').replaceChildren(createOption('','选择常用内参…'), ...engine.standardReferences.map(gene=>createOption(gene==='ACTB (β-actin)' ? 'ACTB' : gene,gene)));
+  for (const id of ['reference-preset','zone-reference-preset']) get(id).replaceChildren(createOption('','选择常用内参…'),
+    ...engine.standardReferences.map(gene=>createOption(gene==='ACTB (β-actin)' ? 'ACTB' : gene,gene)));
   get('reference-preset').addEventListener('change', event => {
     if (event.target.value) get('gene').value=event.target.value;
     colorSelection();
@@ -5448,7 +5899,17 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   });
   const zoneInterface=globalThis.qpcrZoneUI.init({
     get,node,createOption,geneColor,download,engine:()=>engine,planner:()=>planner,
-    plates:()=>plates,active:()=>currentId,mapping:readMapping,selectionMode,setSelectionMode,appendMode,setAppendMode,gridHit,trackBoardFocus,
+    plates:()=>plates,active:()=>currentId,mapping:readMapping,selectionMode,setSelectionMode,appendMode,setAppendMode,gridHit,trackBoardFocus,switchPlate,
+    setBoardSelection(wells) {
+      anchor=wells[0] || null;
+      touchCorner=null;
+      describeSelectionMode();
+      applySelection(wells.length?[{text:wells.join(',')}]:[],false);
+    },
+    clearBoardSelection() {
+      clearSelection();
+      colorSelection(false);
+    },
     commit(rows,plateId,count,removed) {
       applyReferenceFlags(rows);
       $mapping.value=engine.mapText(rows);
@@ -5461,9 +5922,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   $mapping.value=engine.header;
   function describeSelectionMode() {
     get('selection-help').textContent=get('touch-range').checked
-      ? (touchCorner ? `已选起点 ${touchCorner.position}，请轻点终点。` : '先轻点起点，再轻点终点。两次轻点之间可以滑动孔板。')
+      ? (touchCorner ? `已选起点 ${touchCorner.position}，请点终点。` : '依次点起点和终点。触屏上两次轻点之间可以滑动孔板。')
       : selectionMode()==='rectangle'
-      ? 'Shift 扩大选区，Ctrl / ⌘ 追加选区。'
+      ? 'Shift 扩大选区，Ctrl / ⌘ 追加选区。按住 Shift 点行号或列号可选中整行或整列。'
       : `跨行连续从行末接到下一行。例如 A${engine.columns-1} → B2 选中 4 孔。Shift 扩选，Ctrl／⌘ 追加。`;
   }
   document.querySelectorAll('[name="selection-mode"], #touch-range').forEach(input=>input.addEventListener('change',()=>{
