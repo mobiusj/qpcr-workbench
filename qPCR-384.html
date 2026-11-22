@@ -133,7 +133,7 @@ button:disabled {cursor:default}
 #matrix.has-row-genes th:first-child {width:64px}
 #matrix .well.board-planned {background:var(--zone-gene);color:#18292d}
 #matrix .well.conflict {box-shadow:inset 0 0 0 1.5px #a94729}
-#board-overlays .zone-overlay.sample {border-color:#508878a6;background:transparent}
+
 #board-overlays .zone-overlay.replicates {border-color:#34554ec2}
 #board-overlays .zone-overlay.replicates.conflict {border-color:#a94729}
 #repeat-genes-dialog {width:min(485px,94vw);max-height:calc(100dvh - 24px);overflow:auto}
@@ -352,7 +352,41 @@ main {padding-top:30px}
 #matrix .well:not(:disabled,.conflict,[aria-pressed=true]):hover {box-shadow:inset 0 0 0 1px #608a7c}
 #matrix .well:focus-visible {outline-color:#237765;outline-offset:-2px}
 #matrix .well[aria-pressed=true]:focus-visible {outline-color:#1e463e;box-shadow:inset 0 0 0 3px #fff}
-#board-overlays .zone-overlay.sample {border-color:#4d8376bf}
+#board-region-detail {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;
+  min-height:52px;padding:5px 9px;margin-bottom:7px;
+  border:1px solid #d5e5dd;border-radius:8px;background:#f5faf7;
+}
+.board-region-reading {min-width:0;line-height:1.4}
+.board-region-reading strong,.board-region-reading p {
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.board-region-reading strong {font-size:13px;color:var(--brand)}
+#board-region-edit {padding:4px 8px}
+#matrix .sample-label-row .well {padding-top:14px}
+#matrix .sample-label-row .well.late::after {top:14px}
+#board-overlays .zone-overlay.sample {
+  align-content:start;justify-items:start;border-color:hsl(var(--sample-hue) 53% 37% / .86);
+  background:hsl(var(--sample-hue) 65% 60% / .15);
+}
+#board-overlays .zone-overlay.sample.active {
+  box-shadow:inset 0 0 0 1px hsl(var(--sample-hue) 64% 30%);
+  border-color:hsl(var(--sample-hue) 64% 30%);
+}
+#board-overlays .zone-overlay.sample span {
+  display:block;width:max-content;padding:0 3px;line-height:11px;font-size:9px;
+  border-end-end-radius:3px;background:hsl(var(--sample-hue) 49% 90% / .94);
+  color:hsl(var(--sample-hue) 50% 20%);
+}
+#matrix.has-region-selection .well[aria-pressed=true] {
+  outline-color:transparent;box-shadow:none;
+}
+#matrix.has-region-selection .well[aria-pressed=true]:focus-visible {
+  outline-color:#237765;
+}
+#matrix.has-region-selection .detected[aria-pressed=true]:not(.mapped-gene) {background:#d6eae0;color:#164d40}
+#matrix.has-region-selection .inactive[aria-pressed=true]:not(.mapped-gene) {background:#edf1ee;color:#5a6b64}
+#matrix.has-region-selection .mapped[aria-pressed=true]:not(.mapped-gene) {background:#d2e5fa;color:#1b456d}
 #board-selection {min-width:0;padding:2px 8px;background:#dcece4;border-radius:5px;font-variant-numeric:tabular-nums}
 .selection-bar {border:1px solid #dce8e1;background:#f0f6f2}
 .legend {gap:5px 12px}
@@ -398,7 +432,7 @@ dialog::backdrop {background:#102c2b70}
       <span class="private">文件仅在本机处理</span>
       <div class="mast-brand">
         <span class="mast-signature">Möbius</span>
-        <small class="mast-version">v1.9.1</small>
+        <small class="mast-version">v1.9.2</small>
       </div>
     </div>
   </header>
@@ -443,6 +477,13 @@ dialog::backdrop {background:#102c2b70}
     <p id="selection-help" class="quiet" hidden></p>
     <p id="board-region-message" class="quiet" role="status"></p>
     <div id="board-region-editors"></div>
+    <div id="board-region-detail" hidden>
+      <div class="board-region-reading" role="status" aria-live="polite">
+        <strong id="board-region-name"></strong>
+        <p id="board-region-meta" class="quiet"></p>
+      </div>
+      <button id="board-region-edit" type="button" hidden>编辑样本</button>
+    </div>
     <div id="board-overwrite-slot"></div>
     <div class="matrix-wrap" id="plate-matrix-wrap" tabindex="0" aria-label="A 至 P 行、1 至 24 列的孔板"><div class="zone-grid-frame"><table id="matrix" aria-label="384 孔板"></table><div id="board-overlays" class="region-overlays" aria-hidden="true"></div></div></div>
     <div class="legend"><span><i class="detected"></i> 有效 Cp</span><span><i class="inactive"></i> 空孔 / 未检出 / 排除</span><span><i id="late-swatch"></i> <span id="late-legend-label">Late Cp（右上角）</span></span></div>
@@ -2495,7 +2536,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const shareDialog=get('zone-share-dialog'), shareScope=get('zone-share-scope'), shareText=get('zone-share-text');
     const shareInput=get('zone-share-input'), shareTargets=get('zone-share-targets');
     let shareLoad=0, importedBoards=[];
-    let editingArea=null, editingAxis=null, axisDirection=null, lastGroup='Group A';
+    let editingArea=null, editingAxis=null, axisDirection=null, boardRegion=null, lastGroup='Group A';
+    const sampleHues=new Map();
     const layouts=()=>demo ? exampleLayouts : sampleLayouts;
     const currentLayout=()=>layouts().get(selected);
     const regionDirection=()=>currentLayout()?.direction || 'genes-by-row';
@@ -2815,19 +2857,50 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         button.setAttribute('aria-label',button.title);
       }
     }
+    function sampleHue(area) {
+      const key=JSON.stringify([area.group,area.sample]);
+      if (!sampleHues.has(key)) sampleHues.set(key,(165+sampleHues.size*137.5)%360);
+      return sampleHues.get(key);
+    }
+    function paintBoardRegion() {
+      const areas=currentLayout()?.areas || [];
+      const visible=!!selected && !preview && areas.length>0;
+      if (!visible || !areas.includes(boardRegion)) boardRegion=null;
+      boardGrid.classList.toggle('has-region-selection',!!boardRegion);
+      get('board-region-detail').hidden=!visible;
+      get('board-region-edit').hidden=!boardRegion;
+      const name=get('board-region-name'), detail=get('board-region-meta');
+      name.textContent=boardRegion?boardRegion.sample:'单击样本框查看详情';
+      detail.textContent=boardRegion
+        ? selected+' · 分组 '+boardRegion.group+' · 孔位 '+pretty(boardRegion)+' · '+planner().regionWells(boardRegion).length+' 孔'
+        : '双击框内孔位可单独选中。';
+      name.title=boardRegion?name.textContent:'';
+      detail.title=boardRegion?detail.textContent:'';
+    }
     function paintOverlays() {
       const table=inline?boardGrid:grid, layer=inline?boardOverlays:overlays;
       if ((!inline && !dialog.open) || !table.tBodies[0]?.rows.length || !selected) {layer.replaceChildren();return;}
-      const frame=layer.getBoundingClientRect(), isPreview=!!preview;
-      const areas=isPreview ? preview.boxes.filter(box=>box.plate===selected) : (currentLayout()?.areas || []).flatMap(area=>
-        planner().selectionRects(planner().regionWells(area)).map(part=>({...area,...part})));
+      const isPreview=!!preview;
+      const areas=isPreview ? preview.boxes.filter(box=>box.plate===selected) : (currentLayout()?.areas || []).flatMap(region=>
+        planner().selectionRects(planner().regionWells(region)).map(part=>({...part,sample:region.sample,region})));
+      if (inline) {
+        const labelRows=new Set(isPreview?[]:areas.map(area=>limits(area).top));
+        for (const [index,row] of [...table.tBodies[0].rows].entries()) {
+          row.classList.toggle('sample-label-row',labelRows.has(index));
+        }
+      }
+      const frame=layer.getBoundingClientRect();
       const coordinates=(row,col)=>table.tBodies[0].rows[row].cells[col].firstElementChild;
       const boxes=areas.map(area=>{
         const {top,bottom,left,right}=limits(area);
         const firstCell=coordinates(top,left), lastCell=coordinates(bottom,right);
         const start=firstCell.getBoundingClientRect(), end=lastCell.getBoundingClientRect();
         const box=node('div',null,'zone-overlay '+(isPreview?'replicates':'sample'));
-        if (!inline) box.append(node('span',area.sample));
+        if (!inline || !isPreview) box.append(node('span',area.sample));
+        if (inline && !isPreview) {
+          box.style.setProperty('--sample-hue',sampleHue(area.region));
+          box.classList.toggle('active',area.region===boardRegion);
+        }
         if (isPreview) {
           box.style.setProperty('--zone-gene',geneColor(area.gene));
           box.classList.toggle('conflict',engine().rectangle(area.first,area.last).some(well=>{
@@ -2865,7 +2938,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       controls();
     }
     function renderMarks() {
-      if (inline) {paintAxisLabels();paintBoardMarks();return;}
+      if (inline) {paintAxisLabels();paintBoardMarks();paintBoardRegion();return;}
       const assigned=new Map((preview?.rows || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
       const existing=new Map((demo?[]:api.mapping(true) || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
       const conflicts=new Set([...(preview?.replaced || []),...(preview?.cleared || [])].filter(row=>row.plate===selected).map(row=>row.well));
@@ -3098,6 +3171,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     }
     function open() {
       if (inline) rememberDraft();
+      boardRegion=null;
       boardOverlays.replaceChildren();
       inline=false;
       placeEditors();
@@ -3115,7 +3189,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const next=api.active(), switched=selected!==next;
       if (switched) {
         rememberDraft();
-        selected=next;resetDraft();closeEditors();
+        selected=next;boardRegion=null;resetDraft();closeEditors();
         if (!preview) message('');
       }
       restoreLayouts(rows);
@@ -3424,19 +3498,44 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       }});
       return {anchor:cell,title:selected+' · '+well,subtitle:area?`${area.group} / ${area.sample}`:'',items};
     });
+    function editBoardSample(wells,area) {
+      if (!sampleEditor.hidden) {
+        if (area && area!==editingArea) message('请先保存或取消正在编辑的样本。',true);
+        else focusField(get('zone-sample-name'));
+        return;
+      }
+      picked=wells;editSample(area);
+    }
+    get('board-region-edit').addEventListener('click',()=>{
+      if (boardRegion) editBoardSample(planner().regionWells(boardRegion),boardRegion);
+    });
     placeEditors();
     return {
       syncBoard,
-      selectionChanged(wells) {
-        if (!inline || selected!==api.active() || sampleEditor.hidden) return;
+      selectionChanged(wells,updateDraft) {
+        if (!inline || selected!==api.active()) return;
+        if (boardRegion) {
+          const areaWells=planner().regionWells(boardRegion);
+          if (areaWells.length!==wells.length || areaWells.some(well=>!wells.includes(well))) {
+            boardRegion=null;paintBoardRegion();paintOverlays();
+          }
+        }
+        if (!updateDraft || sampleEditor.hidden) return;
         if (wells.length===picked.length && wells.every((well,index)=>well===picked[index])) return;
         picked=wells;updateRangeField();
       },
-      sampleAt:areaAt,
-      editBoardSample(wells,area) {
-        if (!sampleEditor.hidden) {focusField(get('zone-sample-name'));return;}
-        picked=wells;editSample(area);
+      selectBoardRegion(region) {
+        boardRegion=region;
+        api.setBoardSelection(planner().regionWells(region));
+        paintBoardRegion();paintOverlays();
       },
+      selectBoardWell(well) {
+        boardRegion=null;
+        api.setBoardSelection([well]);
+        paintBoardRegion();paintOverlays();
+      },
+      sampleAt:areaAt,
+      editBoardSample,
       editBoardAxis(button) {
         const {axis,index}=button.dataset;
         editAxis(axisIndex(axis,index),axis==='col'?'genes-by-column':'genes-by-row');
@@ -3449,7 +3548,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         if (preview) message(cell.title);
       },
       reset() {
-        demo=false;selected='';layoutSource=previewSource=null;
+        demo=false;selected='';layoutSource=previewSource=boardRegion=null;
+        sampleHues.clear();
         sampleLayouts.clear();exampleLayouts.clear();selectionByPlate.clear();lastGroup='Group A';
         resetDraft();closeEditors();preview=null;message('');
         get('zone-replace').checked=false;get('zone-append').checked=false;
@@ -4071,7 +4171,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     get('well-actions').disabled = !plate || !positions.size;
     get('apply-range').disabled = !plate || !get('quick-range').value.trim();
     get('clear-wells').disabled = !positions.size && !$positions.value;
-    if (syncRegion && !assignmentBoardSelection) zoneInterface.selectionChanged([...positions]);
+    if (!assignmentBoardSelection) zoneInterface.selectionChanged([...positions],syncRegion);
     paintSelectionBoards([...positions]);
     if (assignDialog.open) {
       get('unmap').disabled=!(readMapping(true)||[]).some(row=>row.plate===currentId && positions.has(row.well));
@@ -4738,9 +4838,10 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const extending = !!(event.shiftKey && anchor);
     const original={anchor,parts:selectionParts,positions:$positions.value};
     if (!extending) anchor = position;
-    drag = {id:event.pointerId,start:anchor,end:position,moved:false,extending,modifier:keyAppend(event),twoPoints,
+    const region=!twoPoints && !event.shiftKey && !keyAppend(event) && !appendMode() ? zoneInterface.sampleAt(position) : null;
+    drag = {id:event.pointerId,start:anchor,end:position,moved:false,extending,modifier:keyAppend(event),twoPoints,region,
       original,prefix:selectionBase(appendMode() || keyAppend(event))};
-    if (!twoPoints) selectRange(anchor,position,drag.prefix);
+    if (!twoPoints && !region) selectRange(anchor,position,drag.prefix);
     button.setPointerCapture(event.pointerId);
   });
   function updateDrag(position) {
@@ -4759,14 +4860,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       touchTap = null;
       if (gridHit($matrix,event,wellButton)?.dataset.well !== position) return;
       if (get('touch-range').checked) chooseCorner(position);
-      else selectPoint(position,event);
+      else selectBoardPoint(position,event);
       return;
     }
     if (drag?.id !== event.pointerId) return;
     updateDrag(gridHit($matrix,event,wellButton)?.dataset.well);
-    const {start,moved,extending,modifier,twoPoints,prefix}=drag;
+    const {start,moved,extending,modifier,twoPoints,prefix,region}=drag;
     drag=null;
-    if (!moved && twoPoints) chooseCorner(start);
+    if (!moved && region) zoneInterface.selectBoardRegion(region);
+    else if (!moved && twoPoints) chooseCorner(start);
     else {
       if (!moved && !extending && modifier) togglePosition(prefix,start);
       touchCorner=null;describeSelectionMode();
@@ -4780,6 +4882,11 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     }
     if (touchTap?.id === event.pointerId) touchTap = null;
   });
+  function selectBoardPoint(well,event) {
+    const region=!event.shiftKey && !keyAppend(event) && !appendMode() && zoneInterface.sampleAt(well);
+    if (region) zoneInterface.selectBoardRegion(region);
+    else selectPoint(well,event);
+  }
   $matrix.addEventListener('click', event => {
     const axis = event.target.closest('button[data-axis]');
     if (axis && !axis.disabled) {
@@ -4799,12 +4906,14 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     if (zoneInterface.boardPreview()) zoneInterface.inspectBoard(button);
     else if (event.detail===0 && !zoneInterface.boardAxisEditing()) {
       if (get('touch-range').checked && !event.shiftKey && !keyAppend(event)) chooseCorner(button.dataset.well);
-      else selectPoint(button.dataset.well,event);
+      else selectBoardPoint(button.dataset.well,event);
     }
   });
   $matrix.addEventListener('dblclick',event=>{
     const well=wellButton(event.target)?.dataset.well;
-    if (well && !zoneInterface.boardPreview() && !zoneInterface.boardAxisEditing()) openBoardWells(currentId,replicateGroup(currentId,well));
+    if (!well || zoneInterface.boardPreview() || zoneInterface.boardAxisEditing()) return;
+    if (zoneInterface.sampleAt(well)) zoneInterface.selectBoardWell(well);
+    else openBoardWells(currentId,replicateGroup(currentId,well));
   });
   $matrix.addEventListener('keydown',event=>{
     const button=wellButton(event.target);
