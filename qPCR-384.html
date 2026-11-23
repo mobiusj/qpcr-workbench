@@ -137,6 +137,16 @@ button:disabled {cursor:default}
 #board-overlays .zone-overlay.replicates {border-color:#34554ec2}
 #board-overlays .zone-overlay.replicates.conflict {border-color:#a94729}
 #repeat-genes-dialog {width:min(485px,94vw);max-height:calc(100dvh - 24px);overflow:auto}
+#well-genes-dialog {width:min(520px,94vw);max-height:calc(100dvh - 24px);overflow:auto}
+.well-gene-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+.well-gene-fields label {display:grid;gap:3px;min-width:0}
+.well-gene-fields :is(input,select) {width:100%;min-width:0}
+#well-genes-order,#well-genes-status {margin-top:7px}
+#well-genes-status.error {color:#862d24}
+#well-genes-list {max-height:112px;overflow:auto;margin:5px 0 0;padding-left:19px;font-size:13px;overflow-wrap:anywhere}
+#matrix .well.well-gene,#zone-grid .zone-well.well-gene {box-shadow:inset 0 -2px var(--zone-gene-line)}
+#matrix .well.well-gene.conflict,#zone-grid .zone-well.well-gene.conflict {box-shadow:inset 0 0 0 1.5px #a94729}
+@media(max-width:480px) {#well-genes-dialog {padding:13px}}
 .repeat-genes-fields label {flex:1 1 112px;display:grid;gap:4px}
 #repeat-genes-status {margin:12px 0 6px}
 #repeat-genes-preview {display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:4px 9px;margin:0;padding:0;list-style:none;font-size:12px}
@@ -323,6 +333,16 @@ button:disabled {cursor:default}
   #reset {margin-left:0}
 }
 
+#reference-cp-status {margin:7px 0 0;overflow-wrap:anywhere}
+#reference-cp-status.error {color:#862d24}
+.qc-table-wrap {overflow:auto;max-height:290px;margin-top:7px;border:1px solid var(--edge);border-radius:7px}
+.qc-table-wrap table {min-width:530px;border-spacing:0;text-align:left;table-layout:auto}
+.qc-table-wrap th,.qc-table-wrap td {padding:5px 8px;border-bottom:1px solid #dce8e1;vertical-align:top}
+.qc-table-wrap th {width:auto;background:#eaf3ee}
+.qc-table-wrap td button {padding:3px 6px;font-size:11px}
+.qc-detail {margin-top:7px}
+.qc-detail summary {cursor:pointer;font-weight:650}
+
 /* Main workbench */
 main {padding-top:30px}
 .mast {gap:20px;padding-bottom:18px;margin-bottom:14px;border-bottom:1px solid #d7e4de}
@@ -414,6 +434,12 @@ dialog::backdrop {background:#102c2b70}
   .card .heading {margin-bottom:11px}
 }
 
+
+#zone-overlays .sample.has-well-genes {background:#c9e6dd22;place-items:start}
+#zone-overlays .sample.has-well-genes span {
+  font-size:9px;line-height:11px;background:#e3f2eb;
+}
+#zone-grid .zone-well.well-gene {padding-top:11px}
 </style>
 </head>
 <body>
@@ -432,7 +458,7 @@ dialog::backdrop {background:#102c2b70}
       <span class="private">文件仅在本机处理</span>
       <div class="mast-brand">
         <span class="mast-signature">Möbius</span>
-        <small class="mast-version">v1.9.2</small>
+        <small class="mast-version">v1.9.4</small>
       </div>
     </div>
   </header>
@@ -466,6 +492,7 @@ dialog::backdrop {background:#102c2b70}
     <div class="board-toolbar">
       <div class="actions" id="board-options" hidden>
         <label>基因位置 <select id="board-region-axis"><option value="genes-by-row">按行</option><option value="genes-by-column">按列</option></select></label>
+        <button id="board-well-genes" type="button" aria-haspopup="dialog">按孔设置基因</button>
         <button id="board-repeat-genes" type="button" aria-haspopup="dialog">重复填充基因</button>
         <label>孔内显示 <select id="well-display"><option value="cp">Cp</option><option value="gene">基因名</option></select></label>
         <fieldset id="board-selection-modes" class="selection-modes"><legend class="sr-only">选孔方式</legend><label><input type="radio" name="selection-mode" value="rectangle" checked><span>矩形框选</span></label><label><input type="radio" name="selection-mode" value="continuous"><span>跨行连续</span></label></fieldset>
@@ -536,6 +563,17 @@ dialog::backdrop {background:#102c2b70}
     <div class="quality-panel" aria-labelledby="quality-title">
       <div class="quality-header"><h3 id="quality-title">导出前检查</h3><button id="check-export" type="button">检查数据</button></div>
       <div id="quality-result" role="status" aria-live="polite" hidden></div>
+      <details class="disclosure" id="reference-cp-check">
+        <summary>核对参考 Cp 表</summary>
+        <p class="quiet">可导入同批手算表或已有定量表，比较原始 Cp 并定位孔位。参考表的计算公式和当前映射保持原样。</p>
+        <div class="actions">
+          <label class="button file-button">选择参考 .xlsx <input id="reference-cp-file" type="file" accept=".xlsx" aria-label="选择参考 Cp 工作簿"></label>
+          <button id="reference-cp-refresh" type="button" disabled>重新核对</button>
+          <button id="reference-cp-clear" class="subtle" type="button" hidden>清除参考表</button>
+        </div>
+        <p id="reference-cp-status" class="quiet" role="status"></p>
+        <div id="reference-cp-differences" class="qc-table-wrap" hidden></div>
+      </details>
       <div class="quality-options"><label class="check"><input id="allow-unused" type="checkbox" aria-describedby="allow-unused-help"><span>允许跳过未分配的有效 Cp 孔<small id="allow-unused-help">跳过的孔仍会记录在 Excel 的说明页。</small></span></label></div>
     </div>
     <div class="actions export-actions"><span id="export-count" class="quiet">已选择 2 份工作簿</span><button id="generate" type="button" class="primary">生成所选 Excel</button></div>
@@ -549,13 +587,14 @@ dialog::backdrop {background:#102c2b70}
   </section>
 </main>
 <dialog id="zone-dialog" aria-labelledby="zone-title">
-  <div class="heading"><div><h2 id="zone-title">孔板区域分配</h2><p id="zone-intro">选择每个样本的孔位，设置行或列的基因，再自动识别技术副孔。</p></div></div>
+  <div class="heading"><div><h2 id="zone-title">孔板区域分配</h2><p id="zone-intro">选择每个样本的孔位，按行、按列或按孔设置基因，再自动识别技术副孔。</p></div></div>
   <div class="actions zone-toolbar">
     <button id="zone-example" type="button">试用五基因示例</button><button id="zone-real" type="button" hidden>返回实际孔板</button><span id="zone-source" class="quiet"></span>
   </div>
   <section class="zone-board" aria-label="孔板分区">
     <div class="actions zone-toolbar"><h3 id="zone-board-title">编辑孔板</h3><label>查看板 <select id="zone-plate"></select></label>
       <label id="zone-axis-field">基因位置 <select id="zone-region-axis"><option value="genes-by-row">按行 · 副孔横排</option><option value="genes-by-column">按列 · 副孔竖排</option></select></label>
+      <button id="zone-well-genes" type="button" aria-haspopup="dialog">按孔设置基因</button>
       <button id="zone-repeat-genes" type="button" aria-haspopup="dialog">重复填充基因</button>
       <button id="zone-select-mode" type="button" hidden>继续编辑</button>
     </div>
@@ -583,6 +622,30 @@ dialog::backdrop {background:#102c2b70}
   </section>
   <div class="actions zone-footer"><button id="zone-preview" type="button" class="primary">自动识别</button><span id="zone-message" class="quiet" role="status"></span><button id="zone-share" type="button" aria-haspopup="dialog">共享布局</button><button id="zone-close" type="button">关闭</button><button id="zone-write" class="primary" type="button" disabled>保存映射</button></div>
 </dialog>
+<dialog id="well-genes-dialog" aria-labelledby="well-genes-title">
+  <form id="well-genes-form">
+    <div class="heading"><div><h2 id="well-genes-title">按孔设置基因</h2><p>给同一样本内的任意孔位设置基因。其余孔仍按行列配置识别。</p></div></div>
+    <div class="well-gene-fields">
+      <label class="full">样本区域 <select id="well-genes-area"></select></label>
+      <label class="full">孔位 <input id="well-genes-range" autocomplete="off" placeholder="例如 O1:O3 或 O1, O3" aria-describedby="well-genes-order"></label>
+      <label>基因名称 <input id="well-genes-name" maxlength="80" autocomplete="off"></label>
+      <label>角色 <select id="well-genes-role"><option value="target">目的基因</option><option value="reference">内参基因</option></select></label>
+      <label>常用内参 <select id="well-genes-preset"></select></label>
+      <label>起始副孔编号 <input id="well-genes-rep" type="number" min="1" max="24" step="1" inputmode="numeric" placeholder="自动编号" aria-describedby="well-genes-order"></label>
+    </div>
+    <p id="well-genes-order" class="quiet">自动按当前行列方向编号。要保留缺号，可分开填写各段并指定起始编号；按输入顺序连续编号。</p>
+    <p id="well-genes-status" class="quiet" role="status"></p>
+    <details id="well-genes-existing" class="disclosure" hidden open>
+      <summary>本样本已设置的孔位</summary>
+      <ul id="well-genes-list"></ul>
+    </details>
+    <div class="actions repeat-genes-footer">
+      <button id="well-genes-remove" type="button" class="subtle">恢复行列设置</button>
+      <button id="well-genes-close" type="button">关闭</button>
+      <button type="submit" class="primary">保存基因设置</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="repeat-genes-dialog" aria-labelledby="repeat-genes-title">
   <form id="repeat-genes-form">
     <div class="heading"><div><h2 id="repeat-genes-title">重复填充基因</h2><p id="repeat-genes-help"></p></div></div>
@@ -597,7 +660,7 @@ dialog::backdrop {background:#102c2b70}
   </form>
 </dialog>
 <dialog id="zone-share-dialog" aria-labelledby="zone-share-title">
-  <div class="heading"><div><h2 id="zone-share-title">共享孔板布局</h2><p>仅共享样本、分组、孔位和行列基因设置。</p></div><button id="zone-share-close" class="subtle" type="button">关闭</button></div>
+  <div class="heading"><div><h2 id="zone-share-title">共享孔板布局</h2><p>仅共享样本、分组、孔位和基因设置。</p></div><button id="zone-share-close" class="subtle" type="button">关闭</button></div>
   <div class="actions zone-share-actions">
     <label id="zone-share-scope-label" hidden>范围 <select id="zone-share-scope"></select></label>
     <button id="zone-share-copy" class="primary" type="button">复制布局</button><button id="zone-share-download" type="button">导出 JSON</button>
@@ -1073,6 +1136,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return {data, refs, targets, mode, fixedGroup, results, missing};
   }
 
+  function pairCoverage(analysis) {
+    const {data,refs,targets,mode,fixedGroup,results}=analysis;
+    const reps=repsOf(data), groups=[], incomplete=[];
+    let usable=0, unpaired=0, outOfRange=0;
+    for (const ref of refs) for (const gene of targets) {
+      const {delta,repeat,baselines}=results.get(key(ref,gene));
+      const totals=new Map(data.groups.map(group=>[group,{ref,gene,group,
+        pairs:0,expected:0,withPairs:0,samples:0,calibrator:mode==='fixed'?group===fixedGroup:mode==='own',
+        baseline:mode==='delta'?null:baselines.get(group)}]));
+      data.samples.forEach((sample,index)=>{
+        const total=totals.get(sample.group), output=mode==='delta'?delta[index]:repeat[index];
+        const absent=[], partial=[];
+        let pairs=0, expected=0;
+        for (const [offset,rep] of reps.entries()) {
+          const value=output[offset];
+          if (numeric(value) && (mode==='delta' || foldValue(value)>0)) usable++;
+          else if (numeric(value)) outOfRange++;
+          const a=key(sample.group,sample.sample,ref,rep), b=key(sample.group,sample.sample,gene,rep);
+          if (!data.values.has(a) && !data.values.has(b)) continue;
+          expected++;
+          if (numeric(delta[index][offset])) pairs++;
+          else if (numeric(data.values.get(a))!==numeric(data.values.get(b))) {partial.push(rep);unpaired++;}
+          else absent.push(rep);
+        }
+        total.pairs+=pairs;total.expected+=expected;total.samples++;
+        if (pairs) total.withPairs++;
+        if (pairs<expected || !expected) incomplete.push({ref,gene,group:sample.group,sample:sample.sample,
+          pairs,expected,partial,absent});
+      });
+      groups.push(...totals.values());
+    }
+    return {groups,incomplete,usable,unpaired,outOfRange};
+  }
+  function compareReferenceCp(data, reference) {
+    const canonicalGene=name=>/^(?:β|beta)[-‐‑\s]*(?:actin|action)$/iu.test(name) ? 'ACTB' : name;
+    const slot=(group,sample,gene,rep)=>key(group,sample,canonicalGene(gene),rep);
+    const current=new Map();
+    for (const {cells} of data.audit) {
+      const [plate,,well,,,,,,group,sample,gene,rep,use]=cells;
+      if (use!=='sample') continue;
+      const id=slot(group,sample,gene,rep);
+      if (current.has(id)) throw new Error('当前映射中的基因别名导致重复，请统一基因名后重试：'+group+' / '+sample+' / '+gene+'。');
+      current.set(id,{plate,well,cp:ctAt(data,{group,sample},gene,rep)});
+    }
+    const seen=new Set(), differences=[];
+    let matched=0;
+    for (const item of reference) {
+      const {group,sample,gene,rep,cp}=item, id=slot(group,sample,gene,rep);
+      if (seen.has(id)) fail('参考表有重复的样本、基因和副孔：'+group+' / '+sample+' / '+gene+' / '+rep+'。');
+      seen.add(id);
+      const observed=current.get(id);
+      if (!observed && cp===null) continue;
+      if (observed && (observed.cp===cp || (numeric(cp) && numeric(observed.cp) && Math.abs(cp-observed.cp)<1e-8))) matched++;
+      else differences.push({...item,current:observed || null});
+    }
+    const outsideCoverage=[...current.keys()].filter(id=>!seen.has(id)).length;
+    return {matched,differences,outsideCoverage};
+  }
   function checkExport(plates, rows, {summary, results, mode, control, allowUnused}) {
     const errors = [], notices = [];
     const noteWells = (list, label) => {
@@ -1108,27 +1229,19 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     let analysis;
     try { analysis = calculate(data, refs, mode, control); }
     catch (error) { errors.push(error.message); return {analysis: rawAnalysis, errors, notices}; }
-    let usable = 0, unpaired = 0, outOfRange = 0;
-    const reps = repsOf(data);
-    for (const ref of refs) for (const gene of targets) {
-      const result = analysis.results.get(key(ref, gene));
-      const output = mode === 'delta' ? result.delta : result.repeat;
-      data.samples.forEach((sample, index) => {
-        reps.forEach((rep, offset) => {
-          const value = output[index][offset];
-          if (numeric(value) && (mode === 'delta' || foldValue(value) > 0)) usable++;
-          else if (numeric(value)) outOfRange++;
-          const hasRef = numeric(ctAt(data, sample, ref, rep));
-          const hasTarget = numeric(ctAt(data, sample, gene, rep));
-          if (hasRef !== hasTarget) unpaired++;
-        });
-      });
-    }
+    const coverage=pairCoverage(analysis);
+    const {usable,unpaired,outOfRange}=coverage;
     if (!usable) errors.push(mode === 'fixed' ? '没有可计算的相对表达量。请核对校准组及内参与目的基因的副孔配对。' : '没有可计算的定量结果。请核对内参与目的基因的副孔配对。');
     if (outOfRange) errors.push(`${outOfRange} 处相对表达量超出数值范围，请核对原始 Cp。`);
     if (unpaired) notices.push(`${unpaired} 处副孔只有内参或目的基因一侧有有效 Cp，相应的 ΔCt 留空。`);
     if (analysis.missing.length) notices.push(`${analysis.missing.length} 个计算组合缺少有效校准值，相对量留空（${analysis.missing.slice(0, 3).join('；')}${analysis.missing.length > 3 ? '等' : ''}）。`);
+    const incomplete=coverage.groups.filter(item=>item.withPairs<item.samples || item.pairs<item.expected);
+    if (incomplete.length) {
+      const preview=incomplete.slice(0,4).map(item=>item.gene+' / '+item.group+' 有效 '+item.pairs+'/'+item.expected+' 对（'+item.withPairs+'/'+item.samples+' 个样本）');
+      notices.push('配对覆盖不足：'+preview.join('；')+(incomplete.length>4?' 等':'')+'。可展开配对与校准明细。');
+    }
     analysis.unpaired = unpaired;
+    analysis.coverage = coverage;
     return {analysis, errors, notices};
   }
 
@@ -1510,6 +1623,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ['板ID','源文件','孔位','仪器样本名','原始 Cp','Include','仪器 Status','处理状态','分组','样本','基因','重复','用途','质控标记'].forEach((label,index) => output.put(14,index+1,label,0,'note'));
       data.audit.forEach(({cells,color},index) => cells.forEach((value,column) => output.put(15+index,column+1,value,0,'',false,column+1,[4,6,13].includes(column) ? color : null)));
     }
+    if (analysis.coverage) {
+      const start=16+data.audit.length;
+      const append=(row,values,header=false)=>values.forEach((value,index)=>output.put(row,index+1,value,0,header?'note':'',numeric(value),index+1));
+      append(start,['配对与校准质控'],true);
+      append(start+1,['内参','目的基因','分组','有效配对','应核对配对','有配对样本','样本数','本组 ΔCt 均值','用作校准'],true);
+      analysis.coverage.groups.forEach((item,index)=>append(start+2+index,[item.ref,item.gene,item.group,item.pairs,item.expected,item.withPairs,
+        item.samples,item.baseline,item.calibrator?'是':'']));
+      if (analysis.coverage.incomplete.length) {
+        const next=start+3+analysis.coverage.groups.length;
+        append(next,['内参','目的基因','分组','样本','有效配对','应核对配对','仅一侧有效的副孔','两侧均空的副孔'],true);
+        analysis.coverage.incomplete.forEach((item,index)=>append(next+1+index,[item.ref,item.gene,item.group,item.sample,item.pairs,item.expected,
+          item.partial.join('、'),item.absent.join('、')]));
+      }
+    }
     return output.finish();
   }
   function title(name, taken) {
@@ -1696,7 +1823,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     return {samples:[...samples.values()],groups:unique(source.rows.map(row=>row[0])),genes:source.genes,values,repeatCount,audit:[],warns:[],unused:0,demo:true,source:'用户提供的 1.xlsx / 总（已整理 CT）'};
   }
-  return {plateSize,wells,letters,columns,lastWell,wellOf,header,standardReferences,defaultStyle,defaultLateColor,maxReplicates,lateMark,parseInstrument,parseMapping,mapText,planPlateRemoval,expand,rectangle,continuous,combineSelections,selectionSpan,selectionWells,adjacentWell,axisSelection,allocate,prepareWellMapping,assemble,calculate,checkExport,exportFilename,exportFiles,demoData,layoutFields,makeLayout,exportLayoutTemplate,layoutExample};
+  return {plateSize,wells,letters,columns,lastWell,wellOf,header,standardReferences,defaultStyle,defaultLateColor,maxReplicates,lateMark,parseInstrument,parseMapping,mapText,planPlateRemoval,expand,rectangle,continuous,combineSelections,selectionSpan,selectionWells,adjacentWell,axisSelection,allocate,prepareWellMapping,assemble,calculate,checkExport,compareReferenceCp,exportFilename,exportFiles,demoData,layoutFields,makeLayout,exportLayoutTemplate,layoutExample};
 };
 globalThis.qpcr = globalThis.qpcrForPlate(384);
 </script>
@@ -1921,6 +2048,50 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
     const columns=Math.max(1, ...rows.flatMap(row=>Object.keys(row.columnValues).map(Number)));
     return {widths,rows,merges,columns};
   }
+  async function readReferenceCp(book,maxReplicates) {
+    const cpHeader=/^(?:Cp|Ct|Cq)(?:\s*值)?$/i;
+    for (const descriptor of book.sheets) {
+      const sheet=await part(book.zip,descriptor.path);
+      const rows=elements(child(sheet,'sheetData'),'row');
+      const entries=row=>new Map(elements(row,'c').map(cell=>[columnIndex(attr(cell,'r')),cell]));
+      const header=rows.find(row=>{
+        if (Number(attr(row,'r'))>10) return false;
+        const cells=entries(row);
+        return cpHeader.test(String(cellValue(book,cells.get(4))).trim()) && /^(?:sample|样本)$/i.test(String(cellValue(book,cells.get(1))).trim());
+      });
+      if (!header) continue;
+      const fields=entries(header);
+      const end=[...fields].find(([column,cell])=>column>=5 && /^(?:mean|average|平均(?:Cp|Ct|Cq)?|均值)$/i.test(String(cellValue(book,cell)).trim()))?.[0];
+      if (!end || end-4>maxReplicates) throw new Error('请在 D 列和 mean 列之间保留 1–'+maxReplicates+' 列原始 Cp。');
+      if (rows.length>20000) throw new Error('参考表过大，请先保留本次孔板对应的行。');
+      const records=[];
+      let gene='',group='';
+      for (const row of rows.slice(rows.indexOf(header)+1)) {
+        const cells=entries(row);
+        const read=column=>String(cellValue(book,cells.get(column))).trim();
+        const name=read(1), batch=read(2), sample=read(3);
+        if (name && name!==gene) {gene=name;group='';}
+        if (batch) group=batch;
+        if (!sample) continue;
+        const rowNumber=attr(row,'r');
+        if (!gene || !group) throw new Error(descriptor.name+' 第 '+rowNumber+' 行缺少基因或分组。');
+        for (let col=4;col<end;col++) {
+          const cell=cells.get(col), value=read(col);
+          const column=col<=26?String.fromCharCode(64+col):'A'+String.fromCharCode(38+col);
+          const address=attr(cell,'r') || column+rowNumber;
+          if (child(cell,'f')) throw new Error(descriptor.name+' '+address+' 的 Cp 是公式。请先保留原始 Cp 数值。');
+          const missing=!value || /^(?:undetermined|n\/a|no\s*(?:cp|ct|cq)|[-—–]|未检出)$/i.test(value);
+          const cp=missing?null:Number(value);
+          if (!missing && (!/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value) || !Number.isFinite(cp) || cp<=0)) {
+            throw new Error(descriptor.name+' '+address+' 不是有效 Cp。未检出请留空。');
+          }
+          records.push({gene,group,sample,rep:col-3,cp,source:descriptor.name+'!'+address});
+        }
+      }
+      if (records.length) return {sheet:descriptor.name,records};
+    }
+    throw new Error('找不到参考 Cp 表。请使用基因、分组、样本在 A–C 列，原始 Cp 从 D 列开始，随后有 mean 列的 .xlsx。');
+  }
   function previewNumber(value,style) {
     if (/E\+00$/i.test(style.numberCode)) return value.toExponential(style.digits).replace(/e([+-])(\d+)$/i,(_,sign,exponent)=>'E'+sign+exponent.padStart(2,'0'));
     if (style.numberCode?.endsWith('%')) return (value*100).toFixed(style.digits)+'%';
@@ -1947,7 +2118,7 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
     }
     return colors.map(colorFrom);
   }
-  globalThis.qpcrDesign={openWorkbook,importProfile,importLayout,previewGrid,imagePalette,colorFrom};
+  globalThis.qpcrDesign={openWorkbook,importProfile,importLayout,previewGrid,readReferenceCp,imagePalette,colorFrom};
 })();
 </script>
 <script>globalThis.qpcrPlannerForPlate = function createPlatePlanner(engine) {
@@ -2217,14 +2388,21 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
   const layoutFormat='qpcr-region-layout';
   const layoutTextLimit=2_000_000;
   const rowDirection='genes-by-row', columnDirection='genes-by-column';
+  const validLayoutName=value=>typeof value==='string' && value.trim()===value && !!value && !/[\u0000-\u001f\ufffd]/.test(value);
+  const validRole=role=>role==='target' || role==='reference';
+  const validWellGene=entry=>validLayoutName(entry?.name) && validRole(entry.role) &&
+    (entry.rep===null || intBetween(entry.rep,1,engine.maxReplicates));
   function layoutDocument(entries) {
     const axes=(layout,direction,label)=>[...layout.genes[direction]].sort(([a],[b])=>a-b)
       .map(([index,gene])=>[label(index),gene.name,gene.role]);
-    return {format:layoutFormat,version:1,plateSize:engine.plateSize,plates:entries.map(([id,layout])=>({
+    const version=entries.some(([,layout])=>layout.wellGenes?.size) ? 2 : 1;
+    return {format:layoutFormat,version,plateSize:engine.plateSize,plates:entries.map(([id,layout])=>({
       id,direction:layout.direction,
       areas:layout.areas.map(area=>({sample:area.sample,group:area.group,wells:regionWells(area)})),
       rows:axes(layout,rowDirection,index=>engine.letters[index]),
       columns:axes(layout,columnDirection,index=>index),
+      ...(layout.wellGenes?.size ? {wellGenes:[...layout.wellGenes].sort(([a],[b])=>wellRank(a)-wellRank(b))
+        .map(([well,{name,role,rep}])=>[well,name,role,rep])} : {}),
     }))};
   }
   function parseLayoutDocument(text) {
@@ -2232,14 +2410,13 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
     let data;
     try {data=JSON.parse(text.trim());}
     catch {fail('无法读取布局，请粘贴完整的布局文本或选择布局 JSON 文件。');}
-    if (data?.format!==layoutFormat || data.version!==1) fail('该文件不是支持的 qPCR 孔板布局。');
+    if (data?.format!==layoutFormat || ![1,2].includes(data.version)) fail('该文件不是支持的 qPCR 孔板布局。');
     if (data.plateSize!==engine.plateSize) {
       if ([96,384].includes(data.plateSize)) fail(`此布局适用于 ${data.plateSize} 孔板，请在对应的板型中导入。`);
       fail('布局的孔板规格无效。');
     }
     if (!Array.isArray(data.plates) || !data.plates.length) fail('布局里没有孔板。');
     const seen=new Set();
-    const validName=value=>typeof value==='string' && value.trim()===value && !!value && !/[\u0000-\u001f\ufffd]/.test(value);
     return data.plates.map(board=>{
       if (typeof board?.id!=='string' || !/^P[1-9]\d*$/.test(board.id) || seen.has(board.id)) fail('布局中的板号无效或重复。');
       const {id,direction}=board;
@@ -2251,7 +2428,7 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
         for (const entry of values) {
           if (!Array.isArray(entry) || entry.length!==3) fail(`${id} 的行列基因设置无效。`);
           const [position,name,role]=entry, index=indexOf(position);
-          if (index===null || genes.has(index) || !validName(name) || !['target','reference'].includes(role)) fail(`${id} 的行列基因设置无效或重复。`);
+          if (index===null || genes.has(index) || !validLayoutName(name) || !validRole(role)) fail(`${id} 的行列基因设置无效或重复。`);
           genes.set(index,{name,role});
         }
         return genes;
@@ -2263,7 +2440,7 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
       if (!Array.isArray(board.areas)) fail(`${id} 的样本区域无效。`);
       const used=new Set();
       const areas=board.areas.map(area=>{
-        if (!validName(area?.sample) || !validName(area.group) || !Array.isArray(area.wells) || !area.wells.length) fail(`${id} 的样本区域缺少样本名、分组或孔位。`);
+        if (!validLayoutName(area?.sample) || !validLayoutName(area.group) || !Array.isArray(area.wells) || !area.wells.length) fail(`${id} 的样本区域缺少样本名、分组或孔位。`);
         for (const well of area.wells) {
           if (typeof well!=='string' || engine.wellOf(well)!==well) fail(`${id} 的样本区域有无效孔位。`);
           if (used.has(well)) fail(`${id} 的 ${well} 在样本区域中重复。`);
@@ -2272,7 +2449,18 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
         return {...(rectangleSelection(area.wells) || {wells:area.wells}),sample:area.sample,group:area.group};
       });
       if (!areas.length && !genes[rowDirection].size && !genes[columnDirection].size) fail(`${id} 没有样本区域或行列基因设置。`);
-      return {id,direction,areas,genes};
+      if (board.wellGenes===undefined) return {id,direction,areas,genes};
+      if (data.version!==2 || !Array.isArray(board.wellGenes)) fail(id+' 的按孔基因设置无效。');
+      const wellGenes=new Map();
+      for (const entry of board.wellGenes) {
+        if (!Array.isArray(entry) || entry.length!==4) fail(id+' 的按孔基因设置无效。');
+        const [well,name,role,rep]=entry, definition={name,role,rep};
+        if (!used.has(well) || wellGenes.has(well) || !validWellGene(definition)) {
+          fail(id+' 的按孔基因设置含无效、重复或未归入样本区域的孔位。');
+        }
+        wellGenes.set(well,definition);
+      }
+      return {id,direction,areas,genes,wellGenes};
     });
   }
   function wellRank(well,byColumn) {
@@ -2309,7 +2497,7 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
     const known=new Set(config.plates.map(plate=>plate.id));
     const occupied=new Set(), combinations=new Map(), roles=new Map(), samples=new Map(), genes=new Map();
     const rows=[], boxes=[];
-    for (const {plate,direction,areas,axisGenes} of config.layouts) {
+    for (const {plate,direction,areas,axisGenes,wellGenes=new Map()} of config.layouts) {
       if (!known.has(plate)) fail('未找到板 '+plate+'，请重新选择孔板。');
       const byColumn=direction==='genes-by-column';
       const axisOf=well=>byColumn ? Number(well.slice(1)) : engine.letters.indexOf(well[0]);
@@ -2318,8 +2506,16 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
       if (positioned.some(({positions})=>!positions.length || positions.some(well=>engine.wellOf(well)!==well))) {
         fail(plate+' 有无效的样本孔位，请重新选择。');
       }
-      const missing=new Set(positioned.flatMap(({positions})=>positions.map(axisOf)).filter(axis=>!axisGenes.get(axis)?.name?.trim()));
-      if (missing.size) fail(plate+' 的这些位置还没设置基因：'+[...missing].sort((a,b)=>a-b).map(axisLabel).join('、')+'。');
+      const covered=new Set(positioned.flatMap(({positions})=>positions));
+      for (const [well,definition] of wellGenes) {
+        if (!covered.has(well) || !validWellGene(definition)) fail(plate+' '+well+' 的按孔基因设置无效或不在样本区域内。');
+      }
+      const missing=[...covered].filter(well=>!wellGenes.has(well) && !axisGenes.get(axisOf(well))?.name?.trim());
+      if (missing.length && wellGenes.size) {
+        const ranges=selectionRects(missing).map(({first,last})=>first===last?first:first+':'+last);
+        fail(plate+' 的这些孔还没设置基因：'+ranges.join('、')+'。');
+      }
+      if (missing.length) fail(plate+' 的这些位置还没设置基因：'+[...new Set(missing.map(axisOf))].sort((a,b)=>a-b).map(axisLabel).join('、')+'。');
       for (const {area,positions} of positioned) {
         const sample=area.sample.trim(), group=area.group.trim();
         if (!sample || !group || /[\t\r\n]/.test(sample+group)) fail('请为每个样本区域填写有效的样本名和分组。');
@@ -2327,10 +2523,10 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
         const byGene=new Map();
         positions.sort((a,b)=>wellRank(a,byColumn)-wellRank(b,byColumn));
         for (const well of positions) {
-          const axis=axisOf(well), {name,role:geneRole}=axisGenes.get(axis), gene=name.trim();
-          if (/[\t\r\n]/.test(gene) || !['target','reference'].includes(geneRole)) fail(plate+' '+axisLabel(axis)+' 的基因或角色无效。');
+          const {name,role:geneRole}=wellGenes.get(well) || axisGenes.get(axisOf(well)), gene=name.trim();
+          if (!validLayoutName(gene) || !validRole(geneRole)) fail(plate+' '+well+' 的基因或角色无效。');
           const scope=roleKey({plate,gene});
-          if (roles.has(scope) && roles.get(scope)!==geneRole) fail('基因「'+gene+'」的角色不一致，请核对 '+plate+' '+axisLabel(axis)+'。');
+          if (roles.has(scope) && roles.get(scope)!==geneRole) fail('基因「'+gene+'」的角色不一致，请核对 '+plate+' '+well+'。');
           roles.set(scope,geneRole);
           genes.set(gene,{name:gene});
           const key=slotKey(plate,well);
@@ -2348,7 +2544,24 @@ globalThis.qpcr = globalThis.qpcrForPlate(384);
           combinations.set(combination,{plate,first:wells[0]});
           const pieces=selectionRects(wells,byColumn,false);
           for (const part of pieces) boxes.push({...assignment,...part,count:engine.rectangle(part.first,part.last).length});
-          for (const [index,well] of wells.entries()) rows.push({...assignment,well,rep:index+1});
+          const numbered=new Map();
+          for (const well of wells) {
+            const rep=wellGenes.get(well)?.rep;
+            if (rep==null) continue;
+            if (numbered.has(rep)) {
+              fail(plate+' '+numbered.get(rep)+' 和 '+well+' 的 '+gene+' 都使用副孔 '+rep+'，请调整编号。');
+            }
+            numbered.set(rep,well);
+          }
+          let automatic=1;
+          for (const well of wells) {
+            let rep=wellGenes.get(well)?.rep;
+            if (rep==null) {
+              while (numbered.has(automatic)) automatic++;
+              rep=automatic++;
+            }
+            rows.push({...assignment,well,rep});
+          }
           if (rows.length>maxCombinations) fail('单次最多可分配 '+maxCombinations+' 孔，请分批识别。');
         }
       }
@@ -2531,7 +2744,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     let selected='', demo=false, preview=null, picked=[], anchor='', waiting=false, gesture=null;
     const sampleLayouts=new Map(), exampleLayouts=new Map(), selectionByPlate=new Map();
     const sampleEditor=get('zone-sample-editor'), axisEditor=get('zone-axis-editor'), overlays=get('zone-overlays');
-    const repeatDialog=get('repeat-genes-dialog');
+    const repeatDialog=get('repeat-genes-dialog'), wellGeneDialog=get('well-genes-dialog');
+    const wellGeneArea=get('well-genes-area'), wellGeneRange=get('well-genes-range');
+    const wellGeneName=get('well-genes-name'), wellGeneRole=get('well-genes-role'), wellGeneRep=get('well-genes-rep');
     const repeatFields=['first','last','through'].map(part=>get('repeat-genes-'+part));
     const shareDialog=get('zone-share-dialog'), shareScope=get('zone-share-scope'), shareText=get('zone-share-text');
     const shareInput=get('zone-share-input'), shareTargets=get('zone-share-targets');
@@ -2566,6 +2781,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       (state.sample || state.axis || (!inline && state.picked.length))).map(([id])=>id);
     function controls() {
       const pending=pendingEdits();
+      get(inline?'board-well-genes':'zone-well-genes').disabled=!currentLayout()?.areas.length || !!preview;
       const hasAreas=[...layouts().values()].some(layout=>layout.areas.length || layout.saved.length);
       get('zone-write').disabled=!preview || demo || !!preview.problems.length;
       get('zone-overwrite').hidden=demo || !preview || !(preview.replaced.length || preview.cleared.length);
@@ -2628,7 +2844,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       paintSampleList();
     }
     function newLayout() {
-      return {direction:'genes-by-row',areas:[],genes:{'genes-by-row':new Map(),'genes-by-column':new Map()},saved:[],source:'',dirty:false};
+      return {direction:'genes-by-row',areas:[],genes:{'genes-by-row':new Map(),'genes-by-column':new Map()},wellGenes:new Map(),saved:[],source:'',dirty:false};
     }
     function ensureLayout() {
       if (!currentLayout()) layouts().set(selected,newLayout());
@@ -2648,7 +2864,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       if (!rows) return;
       for (const id of known) {
         const layout=sampleLayouts.get(id), source=mappingSource(rows,id);
-        if (layout?.dirty || layout?.source===source) continue;
+        if (layout?.dirty || layout?.wellGenes.size || layout?.source===source) continue;
         const recovered=planner().recoverRegions(id,rows,layout?.direction);
         const next=newLayout();
         next.direction=recovered.direction;
@@ -2737,6 +2953,109 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       renderMarks();
       focusField(get('zone-axis-name'));
     }
+    function wellGeneMessage(text,error=false) {
+      const status=get('well-genes-status');
+      status.textContent=text;
+      status.classList.toggle('error',error);
+    }
+    const activeWellGeneArea=()=>currentLayout().areas[Number(wellGeneArea.value)];
+    function resetWellGeneFields() {
+      wellGeneName.value=wellGeneRep.value=get('well-genes-preset').value='';
+      wellGeneRole.value='target';
+    }
+    function paintWellGeneList() {
+      const layout=currentLayout(), area=activeWellGeneArea();
+      const definitions=new Map();
+      for (const well of planner().regionWells(area)) {
+        const gene=layout.wellGenes.get(well);
+        if (!gene) continue;
+        const key=JSON.stringify([gene.name,gene.role,gene.rep===null]);
+        if (!definitions.has(key)) definitions.set(key,{gene,wells:[],numbered:[]});
+        const entry=definitions.get(key);
+        entry.wells.push(well);
+        if (gene.rep!==null) entry.numbered.push(well+' #'+gene.rep);
+      }
+      const list=get('well-genes-list');
+      list.replaceChildren(...[...definitions.values()].map(({gene,wells,numbered})=>
+        node('li',gene.name+(gene.role==='reference'?'（内参）':'')+' · '+(numbered.length?numbered.join('、'):formatWells(wells)))));
+      get('well-genes-existing').hidden=!definitions.size;
+      get('well-genes-remove').disabled=!definitions.size;
+    }
+    function openWellGenes(wells=inline?api.currentSelection():picked) {
+      const areas=currentLayout()?.areas || [];
+      if (preview || !areas.length) return;
+      const seed=areaAt(wells[0]) || editingArea || boardRegion;
+      const index=Math.max(0,areas.indexOf(seed));
+      const area=areas[index];
+      const allowed=new Set(planner().regionWells(area));
+      wellGeneArea.replaceChildren(...areas.map((item,i)=>createOption(String(i),item.group+' / '+item.sample+' · '+pretty(item))));
+      wellGeneArea.value=String(index);
+      wellGeneRange.placeholder='例如 '+engine().letters.at(-1)+'1:'+engine().letters.at(-1)+'3';
+      wellGeneRange.value=wells.length && wells.every(well=>allowed.has(well)) ? formatWells(wells) : '';
+      resetWellGeneFields();
+      const definitions=wells.map(well=>currentLayout().wellGenes.get(well));
+      const first=definitions[0];
+      if (wellGeneRange.value && first && definitions.every(gene=>gene?.name===first.name && gene.role===first.role)) {
+        wellGeneName.value=first.name;wellGeneRole.value=first.role;
+        if (first.rep!==null && definitions.every((gene,i)=>gene.rep===first.rep+i)) {
+          wellGeneRange.value=wells.join(', ');
+          wellGeneRep.value=String(first.rep);
+        }
+      }
+      wellGeneMessage('');
+      paintWellGeneList();
+      wellGeneDialog.showModal();
+      focusField(wellGeneRange);
+    }
+    function wellGeneSelection() {
+      const wells=engine().selectionWells(wellGeneRange.value);
+      const area=activeWellGeneArea(), allowed=new Set(planner().regionWells(area));
+      const outside=wells.find(well=>!allowed.has(well));
+      if (outside) {
+        const other=areaAt(outside);
+        throw new Error(outside+(other?' 属于样本 '+other.sample:' 尚未划入样本 '+area.sample)+'，请核对样本和孔位。');
+      }
+      return wells;
+    }
+    function saveWellGenes(clear=false) {
+      try {
+        const wells=wellGeneSelection(), layout=currentLayout();
+        const name=wellGeneName.value.trim(), role=wellGeneRole.value;
+        const start=wellGeneRep.value==='' ? null : Number(wellGeneRep.value);
+        if (!clear && (!name || /[\u0000-\u001f\ufffd]/.test(name))) throw new Error('请填写有效的基因名称。');
+        if (!clear && start!==null && (!Number.isInteger(start) || start<1 || start+wells.length-1>engine().maxReplicates)) {
+          throw new Error('副孔编号须在 1–'+engine().maxReplicates+' 之间，请调整起始编号或孔位。');
+        }
+        const next=wells.map((well,index)=>[well,{name,role,rep:start===null?null:start+index}]);
+        const changed=clear ? wells.filter(well=>layout.wellGenes.has(well)) : next.filter(([well,gene])=>{
+          const old=layout.wellGenes.get(well);
+          return old && (old.name!==gene.name || old.role!==gene.role || old.rep!==gene.rep);
+        }).map(([well])=>well);
+        if (clear && !changed.length) throw new Error('所选孔没有单独设置的基因。');
+        if (changed.length && !window.confirm((clear?'恢复这些孔的行列基因设置？':'替换这些孔已设定的基因或副孔编号？')+'\n'+formatWells(changed))) return;
+        if (clear) for (const well of changed) layout.wellGenes.delete(well);
+        else for (const [well,gene] of next) layout.wellGenes.set(well,gene);
+        layout.dirty=true;
+        if (!inline && sampleEditor.hidden) resetDraft();
+        invalidate();
+        paintWellGeneList();
+        wellGeneMessage(clear?'已清除 '+changed.length+' 个孔的单独设置。':'已设置 '+wells.length+' 孔 · '+name+'。可继续设置其他孔位。');
+        focusField(wellGeneRange);
+      } catch (error) {wellGeneMessage(error.message,true);}
+    }
+    for (const id of ['board-well-genes','zone-well-genes']) get(id).addEventListener('click',()=>openWellGenes());
+    get('well-genes-close').addEventListener('click',()=>wellGeneDialog.close());
+    get('well-genes-form').addEventListener('submit',event=>{event.preventDefault();saveWellGenes();});
+    get('well-genes-remove').addEventListener('click',()=>saveWellGenes(true));
+    get('well-genes-preset').addEventListener('change',event=>{
+      if (!event.target.value) return;
+      wellGeneName.value=event.target.value;wellGeneRole.value='reference';
+    });
+    wellGeneName.addEventListener('input',()=>{get('well-genes-preset').value='';});
+    wellGeneRole.addEventListener('change',()=>{get('well-genes-preset').value='';});
+    wellGeneArea.addEventListener('change',()=>{
+      wellGeneRange.value='';resetWellGeneFields();paintWellGeneList();wellGeneMessage('');
+    });
     function repeatPlan() {
       const [first,last,through]=repeatFields.map(field=>Number(field.value));
       const genes=regionGenes(), source=[];
@@ -2897,6 +3216,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         const start=firstCell.getBoundingClientRect(), end=lastCell.getBoundingClientRect();
         const box=node('div',null,'zone-overlay '+(isPreview?'replicates':'sample'));
         if (!inline || !isPreview) box.append(node('span',area.sample));
+        if (!inline && !isPreview && engine().rectangle(area.first,area.last).some(well=>currentLayout().wellGenes.has(well))) {
+          box.classList.add('has-well-genes');
+        }
         if (inline && !isPreview) {
           box.style.setProperty('--sample-hue',sampleHue(area.region));
           box.classList.toggle('active',area.region===boardRegion);
@@ -2919,6 +3241,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const resizeObserver=new ResizeObserver(paintOverlays);
     resizeObserver.observe(grid);
     resizeObserver.observe(boardGrid);
+    function showWellGene(cell,well) {
+      const definition=currentLayout()?.wellGenes.get(well);
+      cell.classList.toggle('well-gene',!!definition && !preview);
+      if (definition) cell.style.setProperty('--zone-gene-line',geneColor(definition.name));
+      return definition;
+    }
+    function formatWellGene({name,role,rep}) {
+      return '按孔 · '+name+(role==='reference'?'（内参）':'')+(rep!==null?' · 副孔 '+rep:'');
+    }
     function paintBoardMarks() {
       const assigned=new Map((preview?.rows || []).filter(row=>row.plate===selected).map(row=>[row.well,row]));
       const conflicts=new Set([...(preview?.replaced || []),...(preview?.cleared || [])].filter(row=>row.plate===selected).map(row=>row.well));
@@ -2926,14 +3257,15 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const showGenes=get('well-display').value==='gene';
       for (const cell of boardGrid.querySelectorAll('[data-well]')) {
         const well=cell.dataset.well, row=assigned.get(well), area=areas.get(well);
+        const custom=showWellGene(cell,well);
         cell.classList.toggle('board-planned',!!row);
         cell.classList.toggle('conflict',conflicts.has(well));
         if (row) cell.style.setProperty('--zone-gene',geneColor(row.gene));
         const detail=row ? `预览 · ${row.group} / ${row.sample} · ${row.gene} · 副孔 ${row.rep}` :
           area ? `样本区域 · ${area.group} / ${area.sample}` : '';
-        cell.title=[cell.dataset.description,detail].filter(Boolean).join(' · ');
+        cell.title=[cell.dataset.description,detail,!preview && custom?formatWellGene(custom):''].filter(Boolean).join(' · ');
         cell.setAttribute('aria-label',cell.title);
-        cell.textContent=row && showGenes ? row.gene : cell.dataset.label;
+        cell.textContent=showGenes ? row?.gene || (!preview && custom?.name) || cell.dataset.label : cell.dataset.label;
       }
       controls();
     }
@@ -2944,18 +3276,19 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const conflicts=new Set([...(preview?.replaced || []),...(preview?.cleared || [])].filter(row=>row.plate===selected).map(row=>row.well));
       for (const cell of grid.querySelectorAll('[data-zone-well]')) {
         const well=cell.dataset.zoneWell,row=assigned.get(well), old=existing.get(well);
+        const custom=showWellGene(cell,well);
         cell.classList.toggle('planned',!!row);
         cell.classList.toggle('existing',!!old);
         cell.classList.toggle('conflict',conflicts.has(well));
         cell.classList.toggle('old-sample',!row && old?.use==='sample');
         if (row || old?.use==='sample') cell.style.setProperty('--zone-gene',geneColor((row || old).gene));
-        cell.textContent=!row && old?.use==='ntc'?'NTC':'';
+        cell.textContent=!preview && custom ? custom.name : !row && old?.use==='ntc'?'NTC':'';
         const assignment=row || old;
         const detail=selected+' · 孔 '+well+(assignment?.use==='sample'
           ? ` · ${assignment.group} / ${assignment.sample} · ${assignment.gene} · 副孔 ${assignment.rep}`
           : assignment ? (assignment.use==='ntc'?' · NTC':' · 已排除'):'');
-        cell.title=detail;
-        cell.setAttribute('aria-label',detail);
+        cell.title=[detail,!preview && custom?formatWellGene(custom):''].filter(Boolean).join(' · ');
+        cell.setAttribute('aria-label',cell.title);
       }
       paintDraft();
     }
@@ -2996,7 +3329,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const plates=available();
       const configured=plates.flatMap(({id})=>{
         const layout=layouts().get(id);
-        return layout?.areas.length ? [{plate:id,direction:layout.direction,areas:layout.areas,axisGenes:layout.genes[layout.direction]}] : [];
+        return layout?.areas.length ? [{plate:id,direction:layout.direction,areas:layout.areas,axisGenes:layout.genes[layout.direction],wellGenes:layout.wellGenes}] : [];
       });
       const previous=[...layouts().values()].flatMap(layout=>layout.saved);
       return planner().regionPlan({plates,layouts:configured,previous,existing:demo?[]:api.mapping(),replace:get('zone-replace').checked});
@@ -3045,13 +3378,19 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       return button && !button.disabled && grid.contains(button) ? button : null;
     }
     api.trackBoardFocus(grid,'[data-zone-well]',hit);
+    function openPickedSample() {
+      if (!sampleEditor.hidden || !picked.length) return;
+      const area=areaAt(picked[0]);
+      if (area && picked.every(well=>matchesWell(area,well))) return;
+      editSample();
+    }
     function choosePoint(well,event) {
       if (!axisEditor.hidden) {message('请先保存或取消正在编辑的基因。',true);return;}
       const append=addMode(event);
       if (event.shiftKey && anchor) {
         waiting=false;
         setPicked(unique([...(append?picked:[]),...engine().selectionSpan(anchor,well,mode())]));
-        if (!append && sampleEditor.hidden && picked.length) editSample();
+        if (!append) openPickedSample();
         return;
       }
       if (keyAppend(event)) {
@@ -3061,7 +3400,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       if (waiting && anchor) {
         waiting=false;
         setPicked(unique([...(append?picked:[]),...engine().selectionSpan(anchor,well,mode())]));
-        if (!append && sampleEditor.hidden) editSample();
+        if (!append) openPickedSample();
         return;
       }
       const area=areaAt(well);
@@ -3094,7 +3433,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       if (touch && origin!==end) return;
       if (moved) {
         anchor=start;waiting=false;
-        if (!append && sampleEditor.hidden) editSample();
+        if (!append) openPickedSample();
       } else choosePoint(origin,event);
     });
     for (const type of ['pointercancel','lostpointercapture']) grid.addEventListener(type,event=>{
@@ -3330,8 +3669,8 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const occupied=targets.filter(id=>hasSettings(sampleLayouts.get(id)) || selectionByPlate.has(id));
       if (occupied.length && !window.confirm(`用导入的布局替换 ${occupied.join('、')} 的区域和基因设定？孔位映射会在你重新识别并保存时更新。`)) return;
       for (const [index,id] of targets.entries()) {
-        const {direction,areas,genes}=importedBoards[index];
-        sampleLayouts.set(id,{...(sampleLayouts.get(id) || newLayout()),direction,areas,genes,dirty:true});
+        const {direction,areas,genes,wellGenes=new Map()}=importedBoards[index];
+        sampleLayouts.set(id,{...(sampleLayouts.get(id) || newLayout()),direction,areas,genes,wellGenes,dirty:true});
         selectionByPlate.delete(id);
       }
       const next=targets.includes(selected)?selected:targets[0];
@@ -3426,6 +3765,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const occupied=new Set(areas.filter(area=>area!==editingArea).flatMap(area=>planner().regionWells(area)));
       const conflict=wells.find(well=>occupied.has(well));
       if (conflict) {message(`${selected} ${conflict} 已属于另一个样本区域。请调整选区。`,true);return;}
+      const removed=editingArea ? planner().regionWells(editingArea).filter(well=>!wells.includes(well) && layout.wellGenes.has(well)) : [];
+      if (removed.length && !window.confirm('移出以下孔位会清除这些孔的单独基因设置。继续保存？\n'+formatWells(removed))) return;
+      for (const well of removed) layout.wellGenes.delete(well);
       const shape=planner().rectangleSelection(wells);
       const area={...(shape || {wells}),sample,group};
       if (editingArea) areas[areas.indexOf(editingArea)]=area;
@@ -3438,6 +3780,9 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       if (!editingArea) return;
       const layout=currentLayout();
       if (!layout?.areas.includes(editingArea)) {finishSample('孔位映射已更新，请重新选择样本区域。');return;}
+      const customWells=planner().regionWells(editingArea).filter(well=>layout.wellGenes.has(well));
+      if (customWells.length && !window.confirm('移除这个区域也会清除其中的按孔基因设置。继续？')) return;
+      for (const well of customWells) layout.wellGenes.delete(well);
       layout.areas=layout.areas.filter(area=>area!==editingArea);
       layout.dirty=true;
       paintSampleList();finishSample('已移除样本区域。');
@@ -3491,6 +3836,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
       const draft=!preview && picked.includes(well);
       const items=[];
       if (area) items.push({label:'编辑样本区域…',primary:true,action:()=>editSample(area)});
+      if (area && !preview) items.push({label:'按孔设置基因…',action:()=>openWellGenes(draft?picked:[well])});
       if (preview) items.push({label:'查看此孔的预览分配',action:()=>{info.textContent=cell.title;}});
       else if (!area || draft) items.push({label:'将所选孔设为样本…',primary:!area,action:()=>{
         if (!draft) {anchor=well;setPicked([well]);}
@@ -3535,6 +3881,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         paintBoardRegion();paintOverlays();
       },
       sampleAt:areaAt,
+      openWellGenes,
       editBoardSample,
       editBoardAxis(button) {
         const {axis,index}=button.dataset;
@@ -4547,6 +4894,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     openLateSettings({pending}, lateDefaults, `本次 ${pending.length} 块板共有 ${late} 个仪器 Late Cp 提示。设置用于本批孔板，之后可逐板修改。`, '确认并导入');
   }, true));
   function resetExperiment() {
+    clearReferenceCp();
     importVersion++;
     mappingImportVersion++;
     plates.length=0;
@@ -4790,6 +5138,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     return {anchor:button || anchorElement,title:`${plateId} · 已选 ${positions.length} 孔`,
       subtitle: selectionLabel(positions)+(editArea?` · ${editArea.group} / ${editArea.sample}`:''),items:[
       {label:'编辑样本区域…',primary:true,hint:editArea?'修改样本名、分组或孔位':'将所选孔设为同一样本',action:()=>zoneInterface.editBoardSample(positions,editArea)},
+      ...(area?[{label:'按孔设置基因…',action:()=>zoneInterface.openWellGenes(positions)}]:[]),
       ...(group.length>1?[{label:`编辑整组副孔（${group.length} 孔）…`,disabled:editing,action:()=>openBoardWells(plateId,group)}]:[]),
       {label:'手动分配选中孔…',hint:'可设置基因、阴性对照或排除孔',disabled:editing,action:openAssignment},
       {label:'按名单分配选中孔…',disabled:editing,action:()=>openPlanner({plateId,positions})},
@@ -4809,6 +5158,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const area=zoneInterface.sampleAt(wells[0]);
     const occupied=area && planner.regionWells(area);
     const matches=occupied && occupied.length===wells.length && wells.every(well=>occupied.includes(well));
+    if (occupied && !matches && wells.every(well=>occupied.includes(well))) return;
     zoneInterface.editBoardSample(wells,matches?area:null);
   }
   function chooseCorner(position) {
@@ -4963,7 +5313,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
   const repeatOptions=Array.from({length:engine.maxReplicates},(_,index)=>index+1);
   get('rep').replaceChildren(...repeatOptions.map(value=>createOption(String(value),String(value))));
   get('batch-size').append(...repeatOptions.map(value=>createOption(String(value),String(value))));
-  for (const id of ['reference-preset','zone-reference-preset']) get(id).replaceChildren(createOption('','选择常用内参…'),
+  for (const id of ['reference-preset','zone-reference-preset','well-genes-preset']) get(id).replaceChildren(createOption('','选择常用内参…'),
     ...engine.standardReferences.map(gene=>createOption(gene==='ACTB (β-actin)' ? 'ACTB' : gene,gene)));
   get('reference-preset').addEventListener('change', event => {
     if (event.target.value) get('gene').value=event.target.value;
@@ -5943,6 +6293,127 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     const uses=kind=>selection[kind] || selection.custom.some(layout=>layout.kind===kind && layout.slots.length);
     return {summary:uses('summary'),results:uses('results')};
   }
+  let referenceCp=null, referenceCpLoad=0;
+  const referenceStatus=get('reference-cp-status'), referenceDifferences=get('reference-cp-differences');
+  function qcTable(label, headers, records) {
+    const table=node('table'), head=node('thead'), labels=node('tr'), body=node('tbody');
+    table.setAttribute('aria-label',label);
+    labels.append(...headers.map(text=>{
+      const cell=node('th',text);cell.scope='col';return cell;
+    }));
+    head.append(labels);
+    for (const values of records) {
+      const row=node('tr');
+      row.append(...values.map(value=>{
+        const cell=node('td');
+        if (value instanceof HTMLElement) cell.append(value);
+        else cell.textContent=value ?? '—';
+        return cell;
+      }));
+      body.append(row);
+    }
+    table.append(head,body);
+    return table;
+  }
+  function clearReferenceCp() {
+    referenceCpLoad++;
+    referenceCp=null;
+    get('reference-cp-clear').hidden=true;
+    get('reference-cp-refresh').disabled=true;
+    referenceStatus.textContent='';
+    referenceStatus.classList.remove('error');
+    referenceDifferences.hidden=true;
+    referenceDifferences.replaceChildren();
+  }
+  function compareReferenceCp(data) {
+    if (!referenceCp) return 0;
+    referenceDifferences.replaceChildren();
+    referenceDifferences.hidden=true;
+    try {
+      const {matched,differences,outsideCoverage}=engine.compareReferenceCp(data,referenceCp.records);
+      const display=value=>value==null ? '空白' : String(value);
+      referenceStatus.classList.toggle('error',differences.length>0);
+      referenceStatus.textContent=referenceCp.sheet+' · '+matched+' 格一致 · '+differences.length+' 格不同'+
+        (outsideCoverage?' · 当前映射有 '+outsideCoverage+' 格未在参考表列出':'')+
+        (differences.length?'。请核对原始上板记录。':'。');
+      if (!differences.length) return 0;
+      const rows=differences.slice(0,300).map(({group,sample,gene,rep,source,cp,current})=>{
+        const location=current ? node('button',current.plate+' '+current.well) : '未映射';
+        if (current) {
+          location.type='button';
+          location.addEventListener('click',()=>{
+            switchPlate(current.plate);
+            const well=$matrix.querySelector('[data-well="'+current.well+'"]');
+            well?.scrollIntoView({block:'center',inline:'nearest'});
+            well?.focus({preventScroll:true});
+          });
+        }
+        return [group+' / '+sample,gene,rep,display(cp)+' · '+source,display(current?.cp),location];
+      });
+      referenceDifferences.append(qcTable('参考 Cp 差异',['分组 / 样本','基因','副孔','参考值与单元格','工作台 Cp','当前孔位'],rows));
+      if (differences.length>rows.length) referenceDifferences.append(node('p','显示前 '+rows.length+' 格差异。','quiet'));
+      referenceDifferences.hidden=false;
+      return differences.length;
+    } catch (error) {
+      referenceStatus.classList.add('error');
+      referenceStatus.textContent=error.message;
+      return 0;
+    }
+  }
+  function refreshReferenceCp() {
+    if (!referenceCp) return;
+    try {
+      if (!exportPlates().length) throw new Error('请先导入同批仪器数据并保存孔位映射。');
+      const rows=scopedRows(readMapping());
+      if (!rows.some(row=>row.use==='sample')) throw new Error('请先保存样本孔位映射。');
+      compareReferenceCp(engine.assemble(exportPlates(),rows,true));
+    } catch (error) {
+      referenceDifferences.hidden=true;
+      referenceStatus.classList.add('error');
+      referenceStatus.textContent=error.message;
+    }
+  }
+  get('reference-cp-file').addEventListener('change', async event=>{
+    const file=event.target.files[0];event.target.value='';
+    if (!file) return;
+    clearReferenceCp();
+    const version=referenceCpLoad;
+    get('reference-cp-clear').hidden=false;
+    referenceStatus.textContent='正在读取原始 Cp…';
+    try {
+      if (!/\.xlsx$/i.test(file.name) || file.size>16_000_000) throw new Error('请选择不超过 16 MB 的 .xlsx 工作簿。');
+      const book=await design.openWorkbook(globalThis.JSZip,await file.arrayBuffer());
+      const imported=await design.readReferenceCp(book,engine.maxReplicates);
+      if (version!==referenceCpLoad) return;
+      referenceCp=imported;
+      get('reference-cp-refresh').disabled=false;
+      refreshReferenceCp();
+    } catch (error) {
+      if (version!==referenceCpLoad) return;
+      referenceStatus.classList.add('error');
+      referenceStatus.textContent=error.message;
+    }
+  });
+  get('reference-cp-clear').addEventListener('click',clearReferenceCp);
+  get('reference-cp-refresh').addEventListener('click',refreshReferenceCp);
+  function coverageDetails(coverage) {
+    const {groups,incomplete}=coverage;
+    const details=node('details',null,'qc-detail'), body=node('div',null,'qc-table-wrap');
+    details.append(node('summary','配对与校准明细'));
+    const headers=['内参','目的基因','分组','有效配对','有配对样本','本组 ΔCt 均值','用作校准'];
+    body.append(qcTable('配对与校准明细',headers,groups.map(item=>[item.ref,item.gene,item.group,
+      item.pairs+'/'+item.expected,item.withPairs+'/'+item.samples,item.baseline==null?null:item.baseline.toFixed(4),item.calibrator?'是':''])));
+    details.append(body);
+    if (incomplete.length) {
+      const sampleTable=node('div',null,'qc-table-wrap');
+      sampleTable.append(qcTable('缺失配对的样本',['内参 / 目的基因','分组 / 样本','有效配对','仅一侧有效的副孔','两侧均空的副孔'],
+        incomplete.slice(0,300).map(item=>[item.ref+' / '+item.gene,item.group+' / '+item.sample,item.pairs+'/'+item.expected,
+          item.partial.join('、'),item.absent.join('、')])));
+      if (incomplete.length>300) sampleTable.append(node('p','显示前 300 个组合。完整明细见 Excel 的孔位与计算说明。','quiet'));
+      details.append(sampleTable);
+    }
+    return details;
+  }
   function checkExport() {
     const chosen=selectedReports();
     const selection = {summary:get('export-summary').checked, results:get('export-results').checked,custom:chosen.flatMap(report=>report.layout?[report.layout]:[])};
@@ -5958,7 +6429,11 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     }
     const need=reportDataSelection(selection);
     const report=need.summary || need.results || !chosen.length ? analyzeReports(need) : {errors:[],notices:[]};
-    const {analysis,notices} = report, errors=[...nameErrors,...report.errors];
+    const {analysis} = report, notices=[...report.notices], errors=[...nameErrors,...report.errors];
+    if (referenceCp && analysis?.data) {
+      const differences=compareReferenceCp(analysis.data);
+      if (differences) notices.push('参考 Cp 表有 '+differences+' 格不同，可展开「核对参考 Cp 表」查看孔位。');
+    }
     const box=get('quality-result');
     const data=analysis?.data;
     const headline=errors.length ? '有问题需要修正' : notices.length ? '可导出，有事项需要留意' : '检查通过';
@@ -5972,6 +6447,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
         box.append(list);
       }
     }
+    if (analysis?.coverage) box.append(coverageDetails(analysis.coverage));
     box.hidden=false;
     return {analysis,errors,selection,reports};
   }
@@ -6007,7 +6483,7 @@ globalThis.qpcrPlanner=globalThis.qpcrPlannerForPlate(globalThis.qpcr);
     } finally { exporting=button.disabled=false; }
   });
   const zoneInterface=globalThis.qpcrZoneUI.init({
-    get,node,createOption,geneColor,download,engine:()=>engine,planner:()=>planner,
+    get,node,createOption,geneColor,download,currentSelection,engine:()=>engine,planner:()=>planner,
     plates:()=>plates,active:()=>currentId,mapping:readMapping,selectionMode,setSelectionMode,appendMode,setAppendMode,gridHit,trackBoardFocus,switchPlate,
     setBoardSelection(wells) {
       anchor=wells[0] || null;
